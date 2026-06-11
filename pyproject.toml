@@ -42,7 +42,7 @@ all = ["woracle[ground,track,judge,3d]"]
 woracle = "woracle.cli.main:app"
 
 [project.urls]
-Homepage = "https://github.com/ZoreAnuj/woracle"
+Homepage = "https://github.com/ZoreAnuj/Woracle"
 
 [dependency-groups]
 test = [
