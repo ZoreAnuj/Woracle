@@ -80,7 +80,10 @@ class BlobColorGrounder:
             if rng_pair is None:
                 bindings.append(
                     RoleBinding(
-                        role=role.name, bound=False, reason="no color keyword in candidates"
+                        role=role.name,
+                        bound=False,
+                        required=role.required,
+                        reason="no color keyword in candidates",
                     )
                 )
                 continue
@@ -98,7 +101,10 @@ class BlobColorGrounder:
             if not seen_early:
                 bindings.append(
                     RoleBinding(
-                        role=role.name, bound=False, reason="role never visible near rollout start"
+                        role=role.name,
+                        bound=False,
+                        required=role.required,
+                        reason="role never visible near rollout start",
                     )
                 )
                 continue
@@ -114,6 +120,7 @@ class BlobColorGrounder:
                 RoleBinding(
                     role=role.name,
                     bound=True,
+                    required=role.required,
                     quality=float(np.mean(area > 0)),
                     tracks=ArtifactRef(
                         path=os.path.basename(tpath), sha256=digest_file(tpath), kind="track.npz"
@@ -141,24 +148,35 @@ class BlobColorGrounder:
 
 @register("gate_signal", "binding_health")
 class BindingHealthSignal:
-    """min binding quality over REQUIRED roles; evidence_missing if any unbound."""
+    """min binding quality over REQUIRED roles; evidence_missing if a required
+    role is unbound. Optional roles never gate, only annotate."""
 
     name = "binding_health"
     version = "0.1.0"
 
     def measure(self, grounded: GroundedRollout) -> GateSignalValue:
-        # Spec-required roles are recorded by the grounder as bindings; a role
-        # the grounder skipped entirely is itself an evidence failure.
-        missing = [b.role for b in grounded.bindings if not b.bound]
+        required = [b for b in grounded.bindings if b.required]
+        optional_unbound = sorted(
+            b.role for b in grounded.bindings if not b.required and not b.bound
+        )
+        missing = sorted(b.role for b in required if not b.bound)
         if missing:
             return GateSignalValue(
                 name=self.name,
                 status="evidence_missing",
                 value=None,
-                reason=f"unbound roles: {', '.join(sorted(missing))}",
+                reason=f"unbound required roles: {', '.join(missing)}",
             )
-        qualities = [b.quality for b in grounded.bindings]
-        return GateSignalValue(name=self.name, value=float(min(qualities)))
+        if not required:
+            return GateSignalValue(
+                name=self.name,
+                status="evidence_missing",
+                value=None,
+                reason="spec declares no required roles",
+            )
+        value = float(min(b.quality for b in required))
+        details = {f"optional_unbound:{r}": 0.0 for r in optional_unbound}
+        return GateSignalValue(name=self.name, value=value, details=details)
 
 
 @register("gate_signal", "permanence")
@@ -230,8 +248,11 @@ class MotionSanitySignal:
             )
         moving = np.zeros(0, bool)
         for tr in tracks:
-            d = np.linalg.norm(np.diff(np.nan_to_num(tr, nan=0.0), axis=0), axis=1)
-            moving = d > 0.2 if moving.size == 0 else (moving | (d > 0.2))
+            valid = np.asarray(np.isfinite(tr).all(axis=1))
+            pair_ok = valid[1:] & valid[:-1]
+            d = np.linalg.norm(np.diff(tr, axis=0), axis=1)
+            step = pair_ok & (d > 0.2)  # NaN-adjacent pairs never count as motion
+            moving = step if moving.size == 0 else (moving | step)
         frac = float(moving.mean()) if moving.size else 0.0
         return GateSignalValue(
             name=self.name,
@@ -261,16 +282,27 @@ class GoalDistanceProgress:
                 status="evidence_missing",
                 reason="carried_object/receptacle tracks unavailable",
             )
-        s, o = sub.track, np.nanmean(obj.track, axis=0)
-        d = np.linalg.norm(np.nan_to_num(s, nan=1e6) - o, axis=1)
-        d0 = max(float(d[0]), 1e-6)
+        s = sub.track
+        valid = np.asarray(np.isfinite(s).all(axis=1))
+        if not valid.any() or not np.isfinite(obj.track).any():
+            return ChannelScore(
+                channel=self.name,
+                status="evidence_missing",
+                reason="no observed positions for carried_object/receptacle",
+            )
+        o = np.nanmean(obj.track, axis=0)
+        d = np.linalg.norm(s - o, axis=1)  # NaN where unobserved
+        first = int(np.argmax(valid))
+        last = int(len(valid) - 1 - np.argmax(valid[::-1]))
+        d0 = max(float(d[first]), 1e-6)
         curve = np.clip(1.0 - d / d0, 0.0, 1.0)
+        series = [round(float(v), 4) if np.isfinite(v) else None for v in curve]
         return ChannelScore(
             channel=self.name,
-            value=float(curve[-1]),
-            confidence=float(np.mean(~np.isnan(s[:, 0]))),
-            series={"progress": [round(float(v), 4) for v in curve]},
-            details={"final_distance_px": round(float(d[-1]), 2)},
+            value=float(curve[last]),
+            confidence=float(valid.mean()),
+            series={"progress": [v for v in series if v is not None]},
+            details={"final_distance_px": round(float(d[last]), 2)},
         )
 
 
@@ -286,11 +318,19 @@ class PredicateSuccessChannel:
 
     def score(self, grounded: GroundedRollout, spec: TaskSpec) -> ChannelScore:
         roles = role_data(grounded)
-        T = grounded.rollout.n_frames
+        # Window length comes from the ARTIFACTS, not trusted metadata (I3).
+        lengths = [len(r.track) for r in roles.values() if r.track is not None]
+        T = max(lengths) if lengths else 0
+        if T == 0:
+            return ChannelScore(
+                channel=self.name,
+                status="evidence_missing",
+                reason="no role tracks available to evaluate predicates on",
+            )
         k = max(1, spec.success_sustain_frames)
         window = slice(max(0, T - k), T)
-        results = eval_conjunction(spec.success, roles, window, fps=grounded.rollout.fps)
-        missing = [r for r in results if r.margin <= -1.0 and "no " in r.reason]
+        results = eval_conjunction(spec.success, roles, window)
+        missing = [r for r in results if r.status == "evidence_missing"]
         if missing:
             return ChannelScore(
                 channel=self.name,

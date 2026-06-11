@@ -55,7 +55,15 @@ class ContentStore:
         inputs: dict[str, str],
         params: dict[str, Any] | None = None,
     ) -> str:
-        """Build a cache key from explicit, JSON-serializable fields only."""
+        """Build a cache key from explicit, JSON-serializable fields only.
+
+        Empty input digests are rejected: a blank digest would alias every
+        rollout sharing it onto ONE cache entry (grading rollout A with
+        rollout B's pixels — the C1 failure class).
+        """
+        for k, v in inputs.items():
+            if not v:
+                raise StoreError(f"empty digest for cache-key input '{k}'")
         try:
             return digest_json(
                 {

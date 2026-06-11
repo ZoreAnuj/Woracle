@@ -53,6 +53,11 @@
           "title": "Reason",
           "type": "string"
         },
+        "required": {
+          "default": true,
+          "title": "Required",
+          "type": "boolean"
+        },
         "role": {
           "title": "Role",
           "type": "string"

@@ -37,8 +37,8 @@ class ChannelCaps(WoracleModel):
 class ChannelScore(WoracleModel):
     channel: str
     status: ChannelStatus = "ok"
-    value: float | None = None  # None unless status == "ok"
-    confidence: float | None = None  # channel's own confidence in its value
+    value: float | None = Field(default=None, allow_inf_nan=False)  # None unless ok
+    confidence: float | None = Field(default=None, allow_inf_nan=False)
     reason: str = ""
     # Small, plottable extras only (e.g. per-frame curve). Big arrays -> sidecars.
     series: dict[str, list[float]] = Field(default_factory=dict)

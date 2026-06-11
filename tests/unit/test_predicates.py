@@ -57,12 +57,13 @@ def test_approaching() -> None:
     assert toward.holds and not away.holds
 
 
-def test_nan_window_is_evidence_failure_not_crash() -> None:
+def test_nan_window_is_evidence_missing_not_fail() -> None:
     track = np.array([[1.0, 1.0], [np.nan, np.nan]], np.float32)
     res = eval_predicate(
         Predicate(kind="stationary", subject="sub"), {"sub": RoleData(track=track)}, slice(0, 2)
     )
-    assert not res.holds and "unobserved" in res.reason
+    assert res.status == "evidence_missing" and not res.holds
+    assert "unobserved" in res.reason
 
 
 def test_present_uses_visibility() -> None:
@@ -73,9 +74,33 @@ def test_present_uses_visibility() -> None:
     assert early.holds and not late.holds
 
 
-def test_missing_role_is_reasoned_failure() -> None:
+def test_missing_role_is_evidence_missing() -> None:
     res = eval_predicate(Predicate(kind="stationary", subject="ghost"), {}, slice(0, 1))
-    assert not res.holds and "no data" in res.reason
+    assert res.status == "evidence_missing" and not res.holds
+    assert "no data" in res.reason
+
+
+def test_empty_window_is_evidence_missing() -> None:
+    res = eval_predicate(
+        Predicate(kind="stationary", subject="sub"),
+        {"sub": RoleData(track=np.zeros((4, 2), np.float32))},
+        slice(4, 4),
+    )
+    assert res.status == "evidence_missing"
+    assert "empty" in res.reason
+
+
+def test_empty_mask_is_evidence_missing() -> None:
+    res = eval_predicate(
+        Predicate(kind="contained", subject="sub", object="obj"),
+        {
+            "sub": RoleData(track=np.zeros((2, 2), np.float32)),
+            "obj": RoleData(mask=np.zeros((2, 8, 8), np.uint8)),
+        },
+        slice(0, 2),
+    )
+    assert res.status == "evidence_missing"
+    assert "empty" in res.reason
 
 
 def test_binary_kind_without_object_is_spec_error() -> None:

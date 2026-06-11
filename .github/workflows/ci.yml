@@ -35,7 +35,10 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - run: uv python install ${{ matrix.python-version }}
       - run: uv sync --group test --python ${{ matrix.python-version }}
-      - name: torch-leak assertion (kernel rule)
+      # The real kernel-rule enforcement is this JOB: the env contains no model
+      # libs at all, so a leaked import would be an ImportError. The sys.modules
+      # assert becomes meaningful in the [ground]-extra job added in P1.
+      - name: kernel import works in core-only env
         run: |
           uv run python -c "import sys, woracle; banned=[m for m in ('torch','cv2','transformers') if m in sys.modules]; assert not banned, banned; print('kernel clean:', woracle.__version__)"
       - run: uv run pytest

@@ -44,11 +44,16 @@ def compose_gate(
         reasons.append(why)
 
     if policy.require_role_bindings:
-        unbound = [b.role for b in grounded.bindings if not b.bound]
+        unbound = [b.role for b in grounded.bindings if not b.bound and b.required]
         if unbound:
             downgrade(
                 "ungradeable",
                 f"required role(s) not bound: {', '.join(sorted(unbound))}",
+            )
+        optional_unbound = [b.role for b in grounded.bindings if not b.bound and not b.required]
+        if optional_unbound:
+            reasons.append(
+                f"optional role(s) not bound (no gate impact): {', '.join(sorted(optional_unbound))}"
             )
 
     for sig in signals:

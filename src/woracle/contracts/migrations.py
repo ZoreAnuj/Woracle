@@ -4,6 +4,10 @@ Every persisted document carries ``schema_version``. On load we walk
 ``v -> v+1`` migrations until the document reaches the model's current
 version. Migrations are pure dict->dict functions registered per model name.
 
+Compatibility rule: ADDITIVE fields with defaults do not bump the schema
+version (old documents still validate; goldens must still be regenerated and
+reviewed). Renames, removals, or semantic changes DO bump + migrate.
+
 Adding a migration:
 
     @migration("TaskSpec", from_version=1)
@@ -70,10 +74,16 @@ def migrate(model: str, data: dict[str, Any]) -> dict[str, Any]:
             raise SpecError(f"no migration path for {model} v{version} -> v{version + 1}")
         data = step(dict(data))
         new_version = int(data.get("schema_version", version))
-        if new_version <= version:
+        if new_version == version:
             # Migration forgot to bump — enforce, don't loop forever.
             version += 1
             data["schema_version"] = version
-        else:
+        elif new_version == version + 1:
             version = new_version
+        else:
+            raise SpecError(
+                f"{model} migration from v{version} jumped to v{new_version}; "
+                "migrations must advance exactly one version (intermediate "
+                "migrations would be silently skipped)"
+            )
     return data

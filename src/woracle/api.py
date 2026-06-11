@@ -38,8 +38,7 @@ def grade(
 ) -> list[GradeCard]:
     """Grade every rollout under ``rollouts_dir`` against a task spec."""
     from woracle.io import list_rollouts
-    from woracle.pipeline import grade_rollouts
-    from woracle.pipeline.run import BLOB_PROFILE
+    from woracle.pipeline import blob_profile, grade_rollouts
 
     _ensure_plugins_loaded()
     spec_obj = load_spec(spec) if isinstance(spec, str) else spec
@@ -50,13 +49,14 @@ def grade(
     if config is None:
         sources = {r.source for r in rollouts}
         if profile == "blobworld" or (profile == "auto" and sources <= {"blobworld"}):
-            config = BLOB_PROFILE
+            config = blob_profile()
         else:
             raise WoracleError(
                 f"no grading profile for sources {sorted(sources)} yet — real-video "
                 "grounders land in P1. Pass an explicit GradeRunConfig to override."
             )
-    config.out_dir = out_dir
+    # Copy before mutation: caller-passed configs are templates, never scratch.
+    config = config.fresh(out_dir=out_dir)
     if store_root is not None:
         config.store_root = store_root
     elif config.store_root == ".woracle_store":

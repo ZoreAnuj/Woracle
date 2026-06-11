@@ -39,6 +39,12 @@ def load_cards(cards_dir: str) -> list[GradeCard]:
 def build_leaderboard(cards: list[GradeCard]) -> Leaderboard:
     if not cards:
         raise ValueError("no grade cards to summarize")
+    spec_hashes = {c.spec_hash for c in cards}
+    if len(spec_hashes) > 1:
+        raise ValueError(
+            f"cards span {len(spec_hashes)} different specs — a leaderboard compares "
+            "policies on ONE spec; group cards by spec_hash first"
+        )
     by_policy: dict[str, list[GradeCard]] = defaultdict(list)
     for c in cards:
         by_policy[c.policy or "<unknown>"].append(c)
@@ -65,11 +71,14 @@ def build_leaderboard(cards: list[GradeCard]) -> Leaderboard:
                 },
             )
         )
-    # Rank by pass rate then mean verdict-channel value (descending), abstain-aware.
+    # Rank: pass rate desc, then abstain rate asc (an all-abstain policy never
+    # outranks a graded one), then name for determinism. NOT a calibrated
+    # ordering — P5 rank-sets replace this.
     policies.sort(
         key=lambda p: (
             -(p.pass_rate_on_graded if p.pass_rate_on_graded is not None else -1.0),
-            -(next(iter(p.mean_channel_values.values()), 0.0)),
+            p.n_abstained / max(p.n_rollouts, 1),
+            p.policy,
         )
     )
     notes = [

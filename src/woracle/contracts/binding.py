@@ -20,6 +20,9 @@ from woracle.contracts.rollout import RolloutRef
 class RoleBinding(WoracleModel):
     role: str
     bound: bool
+    # Copied from the spec role at grounding time so pure downstream stages
+    # (gate, signals) can be required-aware without re-reading the spec.
+    required: bool = True
     quality: float = 0.0  # [0,1] binder's own confidence
     reason: str = ""  # why not bound / quality notes
     # Sidecar payloads, relative to the bundle dir:

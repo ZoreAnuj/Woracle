@@ -14,15 +14,29 @@ GPU, no network, and no user data.
 
 from __future__ import annotations
 
+import atexit
+import shutil
 import tempfile
 from typing import TYPE_CHECKING
 
 import numpy as np
 
-from woracle.contracts import ChannelScore, GateSignalValue, GroundedRollout, TaskSpec
+from woracle.contracts import (
+    ChannelScore,
+    GateSignalValue,
+    GroundedRollout,
+    RoleBinding,
+    TaskSpec,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
+
+
+def _tmpdir(prefix: str) -> str:
+    d = tempfile.mkdtemp(prefix=prefix)
+    atexit.register(shutil.rmtree, d, True)
+    return d
 
 
 def _fixture() -> tuple[GroundedRollout, TaskSpec]:
@@ -38,7 +52,7 @@ def _fixture() -> tuple[GroundedRollout, TaskSpec]:
     from woracle.testing.blobworld import blob_spec, make_episode
     from woracle.testing.plugins import BlobColorGrounder
 
-    tmp = tempfile.mkdtemp(prefix="woracle-conformance-")
+    tmp = _tmpdir("woracle-conformance-")
     frames, _truth = make_episode("success", seed=7)
     ep_dir = os.path.join(tmp, "ep")
     ref = save_episode(ep_dir, "conformance_success", frames, source="blobworld")
@@ -49,6 +63,36 @@ def _fixture() -> tuple[GroundedRollout, TaskSpec]:
     grounded = BlobColorGrounder().ground(ref, spec, out)
     _FIXTURE = (grounded, spec)  # type: ignore[name-defined]
     return _FIXTURE  # type: ignore[name-defined]
+
+
+def _degenerate_fixture() -> tuple[GroundedRollout, TaskSpec]:
+    """A bundle with NOTHING usable: all roles unbound, zero artifacts.
+
+    Components must respond with recorded evidence-missing statuses — never an
+    exception, never a confident value (the honesty floor for plugins).
+    """
+    global _DEGENERATE
+    try:
+        return _DEGENERATE  # type: ignore[name-defined]
+    except NameError:
+        pass
+    from woracle.testing.blobworld import blob_spec
+
+    grounded_ok, _ = _fixture()
+    spec = blob_spec()
+    grounded = GroundedRollout(
+        rollout=grounded_ok.rollout,
+        spec_name=spec.name,
+        spec_hash=spec.content_hash(),
+        bindings=[
+            RoleBinding(role=r.name, bound=False, required=r.required, reason="degenerate fixture")
+            for r in spec.roles
+        ],
+        grounder="degenerate@0",
+        bundle_dir=_tmpdir("woracle-degenerate-"),
+    )
+    _DEGENERATE = (grounded, spec)  # type: ignore[name-defined]
+    return _DEGENERATE  # type: ignore[name-defined]
 
 
 def _identity_checks(obj: object, kind: str) -> Iterator[tuple[str, Callable[[], None]]]:
@@ -101,11 +145,27 @@ def channel_checks(channel_cls: type) -> list[tuple[str, Callable[[], None]]]:
         ch.score(grounded, spec)
         assert grounded.model_dump() == before, "score() must not mutate its inputs"
 
+    def check_degenerate_honesty() -> None:
+        grounded, spec = _degenerate_fixture()
+        try:
+            score = ch.score(grounded, spec)
+        except Exception as e:
+            raise AssertionError(
+                f"channel raised {type(e).__name__} on a degenerate bundle — missing "
+                "evidence must be RECORDED (status='evidence_missing'), never raised"
+            ) from e
+        assert score.status != "ok" or score.value is None or score.confidence == 0.0, (
+            "channel returned a confident ok-value with zero usable evidence — honesty violation"
+        )
+        if score.status != "ok":
+            assert score.reason, "non-ok scores must explain themselves"
+
     checks += [
         ("channel_caps", check_caps),
         ("channel_score_contract", check_score_contract),
         ("channel_deterministic", check_deterministic),
         ("channel_no_mutation", check_does_not_mutate),
+        ("channel_degenerate_honesty", check_degenerate_honesty),
     ]
     return checks
 
@@ -131,9 +191,23 @@ def gate_signal_checks(signal_cls: type) -> list[tuple[str, Callable[[], None]]]
         a, b = sig.measure(grounded), sig.measure(grounded)
         assert a.model_dump() == b.model_dump(), "measure() must be deterministic"
 
+    def check_degenerate_honesty() -> None:
+        grounded, _spec = _degenerate_fixture()
+        try:
+            v = sig.measure(grounded)
+        except Exception as e:
+            raise AssertionError(
+                f"gate signal raised {type(e).__name__} on a degenerate bundle — "
+                "missing evidence must be RECORDED, never raised"
+            ) from e
+        assert v.status == "evidence_missing", (
+            "a degenerate bundle has no evidence; the signal must say so"
+        )
+
     checks += [
         ("gate_signal_measure_contract", check_measure_contract),
         ("gate_signal_deterministic", check_deterministic),
+        ("gate_signal_degenerate_honesty", check_degenerate_honesty),
     ]
     return checks
 
@@ -148,7 +222,7 @@ def grounder_checks(grounder_cls: type) -> list[tuple[str, Callable[[], None]]]:
         from woracle.io import save_episode
         from woracle.testing.blobworld import blob_spec, make_episode
 
-        tmp = tempfile.mkdtemp(prefix="woracle-conf-grounder-")
+        tmp = _tmpdir("woracle-conf-grounder-")
         frames, _ = make_episode("success", seed=11)
         ep = os.path.join(tmp, "ep")
         ref = save_episode(ep, "conf_g", frames, source="blobworld")

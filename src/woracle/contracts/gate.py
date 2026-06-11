@@ -26,7 +26,9 @@ GateVerdict = Literal["gradeable", "degraded", "ungradeable"]
 class GateSignalValue(WoracleModel):
     name: str
     status: SignalStatus = "ok"
-    value: float | None = None  # None iff evidence_missing
+    # None iff evidence_missing; never NaN/inf (a non-finite "measurement" is
+    # missing evidence wearing a number's clothes).
+    value: float | None = Field(default=None, allow_inf_nan=False)
     # Direction convention: higher = healthier. Signals must normalize to this.
     reason: str = ""
     details: dict[str, float] = Field(default_factory=dict)
