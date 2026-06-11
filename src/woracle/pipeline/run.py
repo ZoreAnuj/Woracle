@@ -63,12 +63,21 @@ class GradeRunConfig:
     seeds: dict[str, int] = field(default_factory=dict)
 
     def fresh(self, **overrides: object) -> GradeRunConfig:
-        """A copy safe to mutate (configs are treated as immutable templates)."""
+        """A copy safe to mutate (configs are treated as immutable templates).
+
+        Explicit overrides always win; only non-overridden mutable fields are
+        deep-copied from the template (NEW-3: never silently discard caller
+        intent).
+        """
         cfg = replace(self, **overrides)  # type: ignore[arg-type]
-        cfg.policy = self.policy.model_copy(deep=True)
-        cfg.signals = list(self.signals)
-        cfg.channels = list(self.channels)
-        cfg.seeds = dict(self.seeds)
+        if "policy" not in overrides:
+            cfg.policy = self.policy.model_copy(deep=True)
+        if "signals" not in overrides:
+            cfg.signals = list(self.signals)
+        if "channels" not in overrides:
+            cfg.channels = list(self.channels)
+        if "seeds" not in overrides:
+            cfg.seeds = dict(self.seeds)
         return cfg
 
 
@@ -200,6 +209,15 @@ def grade_rollouts(
             f"duplicate rollout ids: {', '.join(dupes)} — ids must be unique within a run "
             "(cards are keyed by id; duplicates would silently overwrite)"
         )
+    seen_files: dict[str, str] = {}
+    for r in rollouts:
+        fn = _card_filename(r.id)
+        if fn in seen_files:
+            raise PluginError(
+                f"rollout ids '{seen_files[fn]}' and '{r.id}' collide after filename "
+                f"sanitization ('{fn}') — rename one"
+            )
+        seen_files[fn] = r.id
     store = ContentStore(config.store_root)
     os.makedirs(os.path.join(config.out_dir, "cards"), exist_ok=True)
 

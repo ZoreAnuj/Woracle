@@ -335,7 +335,7 @@ class PredicateSuccessChannel:
             return ChannelScore(
                 channel=self.name,
                 status="evidence_missing",
-                reason="; ".join(r.reason for r in missing),
+                reason="; ".join(dict.fromkeys(r.reason for r in missing)),
             )
         all_hold = all(r.holds for r in results)
         margins = np.array([r.margin for r in results], dtype=np.float64)

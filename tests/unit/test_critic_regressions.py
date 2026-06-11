@@ -20,7 +20,7 @@ from woracle.gate import DEFAULT_POLICY, compose_gate
 from woracle.io import load_rollout, save_episode
 from woracle.pipeline import blob_profile, grade_rollouts
 from woracle.pipeline.run import _frames_digest, _ground_cached, _success_from_channels
-from woracle.report import build_leaderboard
+from woracle.reporting import build_leaderboard
 from woracle.store import ContentStore
 from woracle.testing.blobworld import blob_spec, make_episode
 from woracle.testing.plugins import (
@@ -292,3 +292,43 @@ def test_vanished_track_progress_is_not_confident(tmp_path) -> None:
     score = GoalDistanceProgress().score(grounded, blob_spec())
     if score.status == "ok":
         assert score.confidence is not None and score.confidence < 1.0
+
+
+# ------------------------------------------- re-verification NEW issues -----
+def test_new1_sanitized_filename_collision_rejected(tmp_path) -> None:
+    frames, _ = make_episode("success", seed=0)
+    save_episode(str(tmp_path / "x"), "a/b", frames, source="blobworld")
+    save_episode(str(tmp_path / "y"), "a_b", frames, source="blobworld")
+    a, b = load_rollout(str(tmp_path / "x")), load_rollout(str(tmp_path / "y"))
+    cfg = blob_profile()
+    cfg.store_root = str(tmp_path / "store")
+    cfg.out_dir = str(tmp_path / "out")
+    with pytest.raises(PluginError, match="collide after filename sanitization"):
+        grade_rollouts([a, b], blob_spec(), cfg)
+
+
+def test_new2_report_function_survives_subpackage_import(blob_dataset, tmp_path) -> None:
+    """The reporting subpackage must never shadow the woracle.report function."""
+    import woracle.reporting
+
+    cards = woracle.grade(
+        blob_dataset, os.path.join(blob_dataset, "spec.yaml"), out_dir=str(tmp_path / "o")
+    )
+    board1 = woracle.report(cards)
+    board2 = woracle.report(cards)  # second call used to hit a module, not a function
+    assert callable(woracle.report)
+    assert board1.spec_hash == board2.spec_hash
+
+
+def test_new3_fresh_honors_explicit_overrides() -> None:
+    from woracle.contracts import GatePolicy
+
+    template = blob_profile()
+    custom_policy = GatePolicy(required_signals=["only_this"])
+    out = template.fresh(policy=custom_policy, signals=["s1"], channels=["c1"])
+    assert out.policy.required_signals == ["only_this"]
+    assert out.signals == ["s1"] and out.channels == ["c1"]
+    # and non-overridden fields are still deep copies, not shared refs
+    plain = template.fresh(out_dir="elsewhere")
+    plain.policy.required_signals.append("mutant")
+    assert "mutant" not in template.policy.required_signals

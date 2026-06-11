@@ -12,7 +12,7 @@ import os
 
 import woracle
 from woracle.contracts import GradeCard, RunManifest, migrate
-from woracle.report import build_leaderboard, render_markdown
+from woracle.reporting import build_leaderboard, render_markdown
 
 
 def _by_id(cards: list[GradeCard]) -> dict[str, GradeCard]:

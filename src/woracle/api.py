@@ -69,7 +69,7 @@ def report(
     out_path: str | None = None,
 ) -> Leaderboard:
     """Assemble a leaderboard from grade-card snapshots (no recomputation)."""
-    from woracle.report import build_leaderboard, load_cards, render_markdown
+    from woracle.reporting import build_leaderboard, load_cards, render_markdown
 
     cards = (
         load_cards(cards_dir_or_cards)
