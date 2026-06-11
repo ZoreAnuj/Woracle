@@ -127,7 +127,6 @@ def stats_blocks_for(cards, golds: dict[str, bool] | None = None) -> dict[str, s
     from woracle.stats import abstention_sensitivity, ppi_mean, rank_intervals
 
     blocks: dict[str, str] = {}
-    verdicts = {c.rollout_id: c for c in cards}
     by_policy: dict[str, list] = {}
     for c in cards:
         by_policy.setdefault(c.policy or "<unknown>", []).append(c)
@@ -196,5 +195,4 @@ def stats_blocks_for(cards, golds: dict[str, bool] | None = None) -> dict[str, s
                     f"(have {len(lab_f)}/{len(unlab_f)})"
                 )
         blocks["PPI-rectified success estimates"] = "\n".join(plines)
-    _ = verdicts
     return blocks

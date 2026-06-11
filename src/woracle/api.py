@@ -1,7 +1,8 @@
 """Woracle public API — the four verbs (ARCH §1): compile, ground, grade, report.
 
-P0 ships ``grade`` + ``report`` end-to-end (blobworld profile), ``load_spec``,
-and honest stubs for the verbs that land in later phases.
+All four verbs are real: ``compile`` (demos -> self-tested spec or REFUSE),
+``ground`` (bind roles), ``grade`` (gate -> channels -> verdicts), ``report``
+(leaderboard + MNAR/PPI honesty statistics).
 """
 
 from __future__ import annotations
@@ -93,7 +94,23 @@ def report(
     board = build_leaderboard(cards)
     if isinstance(golds, str):
         with open(golds, encoding="utf-8") as f:
-            golds = {k: bool(v) for k, v in _json.load(f).items()}
+            raw = _json.load(f)
+        golds = {}
+        for k, v in raw.items():
+            if isinstance(v, bool):
+                golds[k] = v
+            elif isinstance(v, str) and v.lower() in ("success", "pass", "true"):
+                golds[k] = True
+            elif isinstance(v, str) and v.lower() in ("fail", "failure", "false"):
+                golds[k] = False
+            else:
+                from woracle.errors import SpecError
+
+                raise SpecError(
+                    f"gold label for '{k}' is {v!r} — use booleans or "
+                    "'success'/'fail' (bool() coercion would silently turn "
+                    "'fail' into True and corrupt the PPI input)"
+                )
     blocks = stats_blocks_for(cards, golds)
     if out_path:
         md = (

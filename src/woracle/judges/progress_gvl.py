@@ -66,14 +66,7 @@ class GVLProgressChannel:
             )
         from woracle.io import load_frames
 
-        try:
-            frames = load_frames(grounded.rollout)
-        except Exception:
-            return ChannelScore(
-                channel=self.name,
-                status="evidence_missing",
-                reason="frames unavailable",
-            )
+        frames = load_frames(grounded.rollout)  # load failures are INFRA, not evidence
         T = len(frames)
         if T < 4:
             return ChannelScore(

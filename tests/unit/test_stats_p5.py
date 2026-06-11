@@ -76,3 +76,48 @@ def test_parser_anchor_counted_as_frame_one() -> None:
     # model counted the anchor: shuffled frames reported as Frames 2..5
     reply = "Frame 2: 10%\nFrame 3: 40%\nFrame 4: 70%\nFrame 5: 90%"
     assert parse_progress_reply(reply, 4) == [0.1, 0.4, 0.7, 0.9]
+
+
+def test_rank_intervals_honest_under_exact_ties() -> None:
+    from woracle.stats.rankboot import rank_intervals
+
+    ri = rank_intervals({"a": [0.0] * 6, "b": [0.0] * 6, "top": [1.0] * 6})
+    assert ri["top"]["rank_low"] == ri["top"]["rank_high"] == 1.0
+    # tied policies must SHARE the 2-3 band, not fabricate disjoint certainty
+    for p in ("a", "b"):
+        assert ri[p]["rank_low"] == 2.0 and ri[p]["rank_high"] == 3.0
+
+
+def test_golds_string_labels_strict(tmp_path) -> None:
+    import json
+
+    import pytest as _pytest
+
+    import woracle
+    from woracle.contracts import GradeCard, Provenance, SuccessReport
+    from woracle.contracts.gate import GateReport
+    from woracle.errors import SpecError
+
+    def card(rid, pol, verdict):
+        return GradeCard(
+            rollout_id=rid,
+            policy=pol,
+            spec_name="s",
+            spec_version=1,
+            spec_hash="h",
+            gate=GateReport(verdict="gradeable"),
+            success=SuccessReport(verdict=verdict),
+            provenance=Provenance(),
+        )
+
+    cards = [card(f"r{i}", "p", "pass") for i in range(4)] + [
+        card(f"q{i}", "z", "fail") for i in range(4)
+    ]
+    ok = {f"r{i}": "success" for i in range(2)} | {f"q{i}": "fail" for i in range(2)}
+    bad = dict(ok) | {"r0": "yes-ish"}
+    gpath = tmp_path / "golds.json"
+    gpath.write_text(json.dumps(ok))
+    woracle.report(cards, golds=str(gpath))  # strings parsed strictly: fine
+    gpath.write_text(json.dumps(bad))
+    with _pytest.raises(SpecError, match="corrupt the PPI input"):
+        woracle.report(cards, golds=str(gpath))

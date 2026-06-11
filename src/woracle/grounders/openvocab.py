@@ -326,9 +326,12 @@ class OpenVocabGrounder:
                 except InfraError:
                     raise
                 except Exception as e:
-                    scores_kept[j] *= 0.5
-                    bindings_note = f"segment failed at sample {j}: {type(e).__name__}"
-                    _ = bindings_note  # recorded via quality reason below
+                    # Segmentation crashes are machinery failures (OOM, CUDA,
+                    # library bugs) — surface as retryable InfraError; silently
+                    # degrading quality would mislabel infra as evidence (I-4).
+                    raise InfraError(
+                        f"SAM segmentation failed at sample {j}: {type(e).__name__}: {e}"
+                    ) from e
 
             # Motion-signature verification (binding-study F3): geometry
             # catches false latches that confidence cannot (measured inversion).

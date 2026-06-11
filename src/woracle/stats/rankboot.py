@@ -34,8 +34,12 @@ def rank_intervals(
     P = len(names)
     ranks = np.empty((n_boot, P), int)
     for b in range(n_boot):
-        means = [float(rng.choice(a, size=len(a), replace=True).mean()) for a in arrs]
-        order = np.argsort([-m for m in means], kind="mergesort")
+        means = np.array([float(rng.choice(a, size=len(a), replace=True).mean()) for a in arrs])
+        # Random tie-break PER DRAW: deterministic (alphabetical) tie-breaking
+        # makes exact ties masquerade as rank certainty — with binary verdict
+        # scores, exact ties are the COMMON case (final-critic finding).
+        jitter = rng.uniform(0, 1e-9, P)
+        order = np.argsort(-(means + jitter), kind="mergesort")
         r = np.empty(P, int)
         r[order] = np.arange(1, P + 1)
         ranks[b] = r
