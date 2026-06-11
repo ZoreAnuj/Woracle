@@ -122,6 +122,18 @@ def eval_predicate(
 
     if obj.track is None:
         return _missing(pred, f"no track for role '{pred.object}'")
+
+    def _resolved_tol(default: float) -> float:
+        """Scale-relative tolerance: tol_rel × sqrt(object mask area) makes a
+        spec transfer across scenes/resolutions; absolute px tol stays as the
+        fallback (and is what hand-written specs use)."""
+        if "tol_rel" in pred.params and obj.mask is not None:
+            occ = obj.mask.any(axis=0) if obj.mask.ndim == 3 else obj.mask.astype(bool)
+            area = float(occ.sum())
+            if area > 0:
+                return float(pred.params["tol_rel"]) * float(np.sqrt(area))
+        return float(pred.params.get("tol", default))
+
     o = obj.track[window]
     if o.size == 0:
         return _missing(pred, "empty evaluation window")
@@ -130,11 +142,11 @@ def eval_predicate(
     d = np.linalg.norm(s - o, axis=1)
 
     if pred.kind == "co_located":
-        tol = pred.params.get("tol", 12.0)
+        tol = _resolved_tol(12.0)
         m = float(tol - d.max())
         return PredicateResult(pred, m > 0, m)
     if pred.kind == "separated":
-        tol = pred.params.get("tol", 12.0)
+        tol = _resolved_tol(12.0)
         m = float(d.min() - tol)
         return PredicateResult(pred, m > 0, m)
     if pred.kind == "approaching":

@@ -42,3 +42,15 @@ jobs:
         run: |
           uv run python -c "import sys, woracle; banned=[m for m in ('torch','cv2','transformers') if m in sys.modules]; assert not banned, banned; print('kernel clean:', woracle.__version__)"
       - run: uv run pytest
+
+  test-video:
+    # [video] extra lane: mp4 ingestion without any model stack.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --group test --extra video
+      - name: kernel still torch-free with [video] installed
+        run: |
+          uv run python -c "import sys, woracle; assert 'torch' not in sys.modules"
+      - run: uv run pytest tests/unit/test_video_io.py -q

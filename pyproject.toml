@@ -30,10 +30,17 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Heavy stacks land here in later phases (P1+). Kept as named placeholders so the
-# extra names are stable from day one.
-ground = []   # P1: open-vocab detect + segment (GroundingDINO/SAM2 via transformers ports)
-track = []    # P1: point tracking (TAPNext / tapnet)
+video = [     # mp4 ingestion (imageio-ffmpeg ships its own ffmpeg binary)
+  "imageio>=2.34",
+  "imageio-ffmpeg>=0.5",
+]
+ground = [    # open-vocab detect + segment via transformers ports (Apache models)
+  "woracle[video]",
+  "torch>=2.2",
+  "transformers>=4.45",
+  "pillow>=10.0",
+]
+track = []    # P1+: dedicated point trackers (tapnet line) — SAM-link tracking ships in [ground]
 judge = []    # P3: VLM judge backends
 "3d" = []     # P1-opt: TAPIP3D / metric depth
 all = ["woracle[ground,track,judge,3d]"]

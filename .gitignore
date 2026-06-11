@@ -10,3 +10,6 @@ build/
 woracle_out/
 blob_demo/
 .woracle_store/
+studies/binding/out/grounded/
+studies/binding/out_tiled/grounded/
+studies/**/*.mp4

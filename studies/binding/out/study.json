@@ -1,0 +1,607 @@
+{
+  "rows": [
+    {
+      "rollout": "act_010000_init_000",
+      "policy": "act_010000",
+      "n_frames": 1200,
+      "roles": {
+        "carried_object": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented",
+          "early_real_window": {
+            "mean_vis": 0.5845,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.5606,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.5788,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0057,
+          "track_jitter_p90": 0.13
+        },
+        "receptacle": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented",
+          "early_real_window": {
+            "mean_vis": 0.3916,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.3948,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.3844,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0072,
+          "track_jitter_p90": 0.06
+        },
+        "gripper": {
+          "bound": true,
+          "quality": 0.9867,
+          "reason": "148/150 samples detected, 148 segmented",
+          "early_real_window": {
+            "mean_vis": 0.2899,
+            "frac_detected": 0.8667
+          },
+          "mid_window": {
+            "mean_vis": 0.2719,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.2759,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.014,
+          "track_jitter_p90": 0.21
+        }
+      }
+    },
+    {
+      "rollout": "act_010000_init_001",
+      "policy": "act_010000",
+      "n_frames": 1200,
+      "roles": {
+        "carried_object": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented",
+          "early_real_window": {
+            "mean_vis": 0.529,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.5734,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.5595,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": -0.0305,
+          "track_jitter_p90": 0.11
+        },
+        "receptacle": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented",
+          "early_real_window": {
+            "mean_vis": 0.4282,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.4342,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.4311,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": -0.0029,
+          "track_jitter_p90": 0.05
+        },
+        "gripper": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented",
+          "early_real_window": {
+            "mean_vis": 0.3506,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.2393,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.2715,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0791,
+          "track_jitter_p90": 0.32
+        }
+      }
+    },
+    {
+      "rollout": "act_050000_init_000",
+      "policy": "act_050000",
+      "n_frames": 1200,
+      "roles": {
+        "carried_object": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented",
+          "early_real_window": {
+            "mean_vis": 0.6157,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.5702,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.5391,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0766,
+          "track_jitter_p90": 0.13
+        },
+        "receptacle": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented",
+          "early_real_window": {
+            "mean_vis": 0.372,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.3993,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.3941,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": -0.0221,
+          "track_jitter_p90": 0.07
+        },
+        "gripper": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented",
+          "early_real_window": {
+            "mean_vis": 0.3119,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.2942,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.2885,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0234,
+          "track_jitter_p90": 0.18
+        }
+      }
+    },
+    {
+      "rollout": "act_050000_init_001",
+      "policy": "act_050000",
+      "n_frames": 1200,
+      "roles": {
+        "carried_object": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented",
+          "early_real_window": {
+            "mean_vis": 0.5811,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.5872,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.5826,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": -0.0015,
+          "track_jitter_p90": 0.12
+        },
+        "receptacle": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented",
+          "early_real_window": {
+            "mean_vis": 0.4315,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.4365,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.4288,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0027,
+          "track_jitter_p90": 0.85
+        },
+        "gripper": {
+          "bound": true,
+          "quality": 0.9933,
+          "reason": "149/150 samples detected, 149 segmented",
+          "early_real_window": {
+            "mean_vis": 0.2965,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.2973,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.3062,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": -0.0097,
+          "track_jitter_p90": 0.15
+        }
+      }
+    },
+    {
+      "rollout": "smolvla_init_000",
+      "policy": "smolvla",
+      "n_frames": 1200,
+      "roles": {
+        "carried_object": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented",
+          "early_real_window": {
+            "mean_vis": 0.5389,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.5655,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.548,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": -0.0091,
+          "track_jitter_p90": 0.14
+        },
+        "receptacle": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented",
+          "early_real_window": {
+            "mean_vis": 0.4003,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.3998,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.3829,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0174,
+          "track_jitter_p90": 0.07
+        },
+        "gripper": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented",
+          "early_real_window": {
+            "mean_vis": 0.3017,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.2685,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.3082,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": -0.0065,
+          "track_jitter_p90": 0.17
+        }
+      }
+    },
+    {
+      "rollout": "smolvla_init_001",
+      "policy": "smolvla",
+      "n_frames": 1200,
+      "roles": {
+        "carried_object": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented",
+          "early_real_window": {
+            "mean_vis": 0.596,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.5986,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.6067,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": -0.0107,
+          "track_jitter_p90": 0.11
+        },
+        "receptacle": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented",
+          "early_real_window": {
+            "mean_vis": 0.3916,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.4184,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.4147,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": -0.0231,
+          "track_jitter_p90": 0.51
+        },
+        "gripper": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented",
+          "early_real_window": {
+            "mean_vis": 0.3634,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.3205,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.2497,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.1137,
+          "track_jitter_p90": 0.15
+        }
+      }
+    },
+    {
+      "rollout": "random_init_000",
+      "policy": "random",
+      "n_frames": 1200,
+      "roles": {
+        "carried_object": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented",
+          "early_real_window": {
+            "mean_vis": 0.5998,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.5835,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.5897,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0101,
+          "track_jitter_p90": 0.15
+        },
+        "receptacle": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented",
+          "early_real_window": {
+            "mean_vis": 0.3943,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.3905,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.383,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0113,
+          "track_jitter_p90": 0.14
+        },
+        "gripper": {
+          "bound": true,
+          "quality": 0.9733,
+          "reason": "146/150 samples detected, 146 segmented",
+          "early_real_window": {
+            "mean_vis": 0.2418,
+            "frac_detected": 0.8667
+          },
+          "mid_window": {
+            "mean_vis": 0.3044,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.2933,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": -0.0515,
+          "track_jitter_p90": 0.9
+        }
+      }
+    },
+    {
+      "rollout": "random_init_001",
+      "policy": "random",
+      "n_frames": 1200,
+      "roles": {
+        "carried_object": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented",
+          "early_real_window": {
+            "mean_vis": 0.5774,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.6277,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.6365,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": -0.0591,
+          "track_jitter_p90": 0.12
+        },
+        "receptacle": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented",
+          "early_real_window": {
+            "mean_vis": 0.3794,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.3242,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.3591,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0203,
+          "track_jitter_p90": 2.36
+        },
+        "gripper": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented",
+          "early_real_window": {
+            "mean_vis": 0.2851,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.2629,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.2593,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0258,
+          "track_jitter_p90": 0.13
+        }
+      }
+    }
+  ],
+  "aggregate": {
+    "per_policy": {
+      "act_010000": {
+        "carried_object": {
+          "bind_rate": 1.0,
+          "mean_quality": 1.0,
+          "mean_real_to_late_drop": -0.012
+        },
+        "receptacle": {
+          "bind_rate": 1.0,
+          "mean_quality": 1.0,
+          "mean_real_to_late_drop": 0.002
+        },
+        "gripper": {
+          "bind_rate": 1.0,
+          "mean_quality": 0.993,
+          "mean_real_to_late_drop": 0.047
+        }
+      },
+      "act_050000": {
+        "carried_object": {
+          "bind_rate": 1.0,
+          "mean_quality": 1.0,
+          "mean_real_to_late_drop": 0.038
+        },
+        "receptacle": {
+          "bind_rate": 1.0,
+          "mean_quality": 1.0,
+          "mean_real_to_late_drop": -0.01
+        },
+        "gripper": {
+          "bind_rate": 1.0,
+          "mean_quality": 0.997,
+          "mean_real_to_late_drop": 0.007
+        }
+      },
+      "smolvla": {
+        "carried_object": {
+          "bind_rate": 1.0,
+          "mean_quality": 1.0,
+          "mean_real_to_late_drop": -0.01
+        },
+        "receptacle": {
+          "bind_rate": 1.0,
+          "mean_quality": 1.0,
+          "mean_real_to_late_drop": -0.003
+        },
+        "gripper": {
+          "bind_rate": 1.0,
+          "mean_quality": 1.0,
+          "mean_real_to_late_drop": 0.054
+        }
+      },
+      "random": {
+        "carried_object": {
+          "bind_rate": 1.0,
+          "mean_quality": 1.0,
+          "mean_real_to_late_drop": -0.025
+        },
+        "receptacle": {
+          "bind_rate": 1.0,
+          "mean_quality": 1.0,
+          "mean_real_to_late_drop": 0.016
+        },
+        "gripper": {
+          "bind_rate": 1.0,
+          "mean_quality": 0.987,
+          "mean_real_to_late_drop": -0.013
+        }
+      }
+    },
+    "notes": [
+      "No per-frame human boxes exist for these rollouts; metrics are label-free observables (bind rate, real-vs-generated detection gap, persistence).",
+      "Frame-0 window is REAL (WM rollouts start from a real observation); late window is fully generated \u2014 the drop is the generative-degradation signal."
+    ]
+  },
+  "config": {
+    "stride": 8,
+    "det_threshold": 0.2,
+    "per_policy": 2,
+    "grounder": {
+      "stride": 8,
+      "det_threshold": 0.2,
+      "text_threshold": 0.2,
+      "iou_weight": 0.3,
+      "max_jump_frac": 0.35,
+      "segment_every": 1,
+      "detector": "IDEA-Research/grounding-dino-tiny",
+      "segmenter": "facebook/sam-vit-base"
+    }
+  }
+}

@@ -1,0 +1,90 @@
+schema_version: 1
+name: rh20t-pipette-insert
+prompt: insert the large pipette tip into the tip holder
+roles:
+- name: carried_object
+  definition: the pipette tip box / tip carried by the gripper toward the holder
+  motion: co_moves_with_effector
+  candidates:
+  - white pipette tip
+  - pipette tip box
+  - small white box
+  required: true
+- name: receptacle
+  definition: the static green tip holder the tip must be seated into
+  motion: static
+  candidates:
+  - green tip holder
+  - green holder
+  - green rack
+  required: true
+- name: gripper
+  definition: the robot end-effector
+  motion: actuated
+  candidates:
+  - robot gripper
+  - robot arm
+  required: false
+phases:
+- name: approach
+  description: tip approaches the holder
+  order: 0
+  active:
+  - kind: approaching
+    subject: carried_object
+    object: receptacle
+    params: {}
+- name: insert
+  description: tip enters the holder region
+  order: 1
+  active:
+  - kind: co_located
+    subject: carried_object
+    object: receptacle
+    params:
+      tol: 30.0
+- name: settle
+  description: tip seated, gripper releases
+  order: 2
+  active:
+  - kind: stationary
+    subject: carried_object
+    params:
+      tol: 2.0
+success:
+- kind: co_located
+  subject: carried_object
+  object: receptacle
+  params:
+    tol: 25.0
+- kind: stationary
+  subject: carried_object
+  params:
+    tol: 2.0
+failure_modes:
+- name: missed
+  description: tip ends away from the holder
+  signature: []
+- name: dropped
+  description: tip detaches before reaching the holder
+  signature: []
+success_sustain_frames: 8
+tl_formula: ''
+version: 1
+spec_provenance:
+  demo_digests: []
+  compiler: handwritten
+  self_test:
+    ran: false
+    demos_passed: 0
+    demos_total: 0
+    negatives_failed: 0
+    negatives_total: 0
+    accepted: false
+    notes: ''
+  provenance:
+    package_version: ''
+    git_sha: ''
+    created_at: ''
+    components: {}
+    extra: {}

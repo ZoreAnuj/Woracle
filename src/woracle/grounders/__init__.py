@@ -1,4 +1,12 @@
-"""S2 grounders — real-video role binding lands in P1 (GroundingDINO+SAM2,
-TAPNext) behind the [ground]/[track] extras. The Grounder protocol lives in
-woracle.protocols; the blobworld reference grounder in woracle.testing.plugins.
-(Package named `grounders` — `ground` is the public API verb in woracle.api.)"""
+"""S2 grounders. The Grounder protocol lives in woracle.protocols.
+
+`openvocab.gdino_sam` (GroundingDINO-tiny + SAM, transformers ports) registers
+on import; its MODEL imports happen lazily at call time behind the [ground]
+extra. The blobworld reference grounder lives in woracle.testing.plugins.
+(Package named `grounders` — `ground` is the public API verb in woracle.api.)
+"""
+
+from woracle.grounders.openvocab import OpenVocabGrounder
+from woracle.grounders.relational import RelationalMotionGrounder
+
+__all__ = ["OpenVocabGrounder", "RelationalMotionGrounder"]

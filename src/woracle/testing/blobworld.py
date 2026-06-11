@@ -49,6 +49,42 @@ COLORS = {
     "receptacle": (40, 180, 60),  # green
 }
 
+
+@dataclass(frozen=True)
+class Scene:
+    """A blobworld scene family member: same TASK, different appearance/layout.
+
+    Scene B exists to make cross-scene transfer a real test, not a slogan:
+    different colors, mirrored layout — an appearance-bound spec/grounder
+    fails on it; a relational one survives.
+    """
+
+    colors: dict[str, tuple[int, int, int]]
+    cup_x0: int = CUP_X0
+    cup_x1: int = CUP_X1
+    cup_y0: int = CUP_Y0
+    cup_y1: int = CUP_Y1
+    start_x: float = 16.0
+
+    @property
+    def interior(self) -> tuple[int, int, int, int]:
+        return (self.cup_x0 + WALL, self.cup_y0, self.cup_x1 - WALL, self.cup_y1 - WALL)
+
+
+SCENE_A = Scene(colors=dict(COLORS))
+SCENE_B = Scene(
+    colors={
+        "gripper": (160, 40, 200),  # purple effector
+        "carried_object": (235, 200, 40),  # yellow square
+        "receptacle": (40, 90, 230),  # blue cup
+    },
+    cup_x0=4,
+    cup_x1=28,
+    cup_y0=30,
+    cup_y1=66,
+    start_x=float(W - 20),
+)
+
 KINDS = ("success", "fail_miss", "fail_drop", "vanish", "random")
 LABELS = {
     "success": "success",
@@ -67,36 +103,46 @@ class Truth:
     carried: np.ndarray  # (T, 2) float32, NaN after vanish
     events: dict[str, int] = field(default_factory=dict)
 
+    @property
+    def actions(self) -> np.ndarray:
+        """Commanded effector deltas (T, 2) — what a policy 'sent'."""
+        d = np.diff(self.gripper, axis=0, prepend=self.gripper[:1])
+        return d.astype(np.float32)
+
 
 def _smoothstep(t: np.ndarray) -> np.ndarray:
     return t * t * (3.0 - 2.0 * t)
 
 
-def _draw(frame: np.ndarray, kind: str, cx: float, cy: float) -> None:
+def _draw(frame: np.ndarray, kind: str, cx: float, cy: float, scene: Scene) -> None:
     if kind == "gripper":
         yy, xx = np.mgrid[0:H, 0:W]
         mask = (xx - cx) ** 2 + (yy - cy) ** 2 <= GRIP_R**2
-        frame[mask] = COLORS["gripper"]
+        frame[mask] = scene.colors["gripper"]
     else:  # carried square
         x0, y0 = round(cx - SQ / 2), round(cy - SQ / 2)
-        frame[max(0, y0) : y0 + SQ, max(0, x0) : x0 + SQ] = COLORS["carried_object"]
+        frame[max(0, y0) : y0 + SQ, max(0, x0) : x0 + SQ] = scene.colors["carried_object"]
 
 
-def _draw_cup(frame: np.ndarray) -> None:
-    c = COLORS["receptacle"]
-    frame[CUP_Y0:CUP_Y1, CUP_X0 : CUP_X0 + WALL] = c  # left wall
-    frame[CUP_Y0:CUP_Y1, CUP_X1 - WALL : CUP_X1] = c  # right wall
-    frame[CUP_Y1 - WALL : CUP_Y1, CUP_X0:CUP_X1] = c  # base
+def _draw_cup(frame: np.ndarray, scene: Scene) -> None:
+    c = scene.colors["receptacle"]
+    frame[scene.cup_y0 : scene.cup_y1, scene.cup_x0 : scene.cup_x0 + WALL] = c  # left wall
+    frame[scene.cup_y0 : scene.cup_y1, scene.cup_x1 - WALL : scene.cup_x1] = c  # right wall
+    frame[scene.cup_y1 - WALL : scene.cup_y1, scene.cup_x0 : scene.cup_x1] = c  # base
 
 
-def make_episode(kind: str, seed: int = 0, n_frames: int = 60) -> tuple[np.ndarray, Truth]:
+def make_episode(
+    kind: str, seed: int = 0, n_frames: int = 60, scene: Scene | None = None
+) -> tuple[np.ndarray, Truth]:
     if kind not in KINDS:
         raise ValueError(f"unknown blobworld kind '{kind}' (kinds: {KINDS})")
+    scene = scene or SCENE_A
+    interior = scene.interior
     rng = np.random.default_rng(seed)
     T = n_frames
-    start = np.array([16.0, H / 2.0])
-    interior_cx = (INTERIOR[0] + INTERIOR[2]) / 2.0
-    interior_cy = (INTERIOR[1] + INTERIOR[3]) / 2.0 + 6.0  # settle low in the cup
+    start = np.array([scene.start_x, H / 2.0])
+    interior_cx = (interior[0] + interior[2]) / 2.0
+    interior_cy = (interior[1] + interior[3]) / 2.0 + 6.0  # settle low in the cup
 
     grip = np.zeros((T, 2), np.float32)
     carried = np.zeros((T, 2), np.float32)
@@ -115,7 +161,8 @@ def make_episode(kind: str, seed: int = 0, n_frames: int = 60) -> tuple[np.ndarr
         t_arrive = int(T * 0.6)
         tt = _smoothstep(np.clip(np.arange(T) / max(t_arrive, 1), 0, 1))[:, None]
         if kind == "fail_miss":
-            target = np.array([CUP_X0 - 18.0, interior_cy - 10.0])  # beside the cup
+            miss_x = scene.cup_x0 - 18.0 if scene.cup_x0 > W / 2 else scene.cup_x1 + 18.0
+            target = np.array([miss_x, interior_cy - 10.0])  # beside the cup
         path = start[None, :] + (target - start)[None, :] * tt
         grip[:] = path
         carried[:] = path + np.array([0.0, 10.0])
@@ -129,7 +176,7 @@ def make_episode(kind: str, seed: int = 0, n_frames: int = 60) -> tuple[np.ndarr
             events["release_frame"] = t_release
             carried[t_release:] = carried[t_release - 1]  # settled
             # gripper retreats after release
-            retreat = np.array([-26.0, -22.0])
+            retreat = np.array([-26.0 if scene.cup_x0 > W / 2 else 26.0, -22.0])
             for i, t in enumerate(range(t_release, T)):
                 frac = _smoothstep(np.array([min(1.0, i / 10.0)]))[0]
                 grip[t] = grip[t_release - 1] + retreat * frac
@@ -143,10 +190,10 @@ def make_episode(kind: str, seed: int = 0, n_frames: int = 60) -> tuple[np.ndarr
     frames += rng.integers(0, 6, (1, H, W, 3), dtype=np.uint8)
     vanish_at = events.get("vanish_frame", T + 1)
     for t in range(T):
-        _draw_cup(frames[t])
+        _draw_cup(frames[t], scene)
         if t < vanish_at:
-            _draw(frames[t], "carried_object", carried[t, 0], carried[t, 1])
-        _draw(frames[t], "gripper", grip[t, 0], grip[t, 1])
+            _draw(frames[t], "carried_object", carried[t, 0], carried[t, 1], scene)
+        _draw(frames[t], "gripper", grip[t, 0], grip[t, 1], scene)
 
     carried_truth = carried.copy()
     if kind == "vanish":
@@ -249,6 +296,7 @@ def write_dataset(
                 fps=fps,
                 policy=kind,
                 source="blobworld",
+                actions=truth.actions,
                 meta={"kind": kind, "label": truth.label},
             )
             np.savez_compressed(

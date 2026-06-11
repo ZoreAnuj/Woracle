@@ -20,7 +20,10 @@ __all__ = ["compile", "grade", "ground", "load_spec", "report"]
 
 
 def _ensure_plugins_loaded() -> None:
-    # First-party reference components register on import; third-party via EPs.
+    # First-party components register on import; third-party via entry points.
+    import woracle.channels
+    import woracle.gate.signals
+    import woracle.grounders
     import woracle.testing.plugins  # noqa: F401
     from woracle.registry import load_entry_points
 
@@ -84,13 +87,37 @@ def report(
     return board
 
 
-def compile(*_args: object, **_kwargs: object) -> TaskSpec:
-    """Stage-1 spec compiler — lands in P4."""
-    raise WoracleError(
-        "woracle.compile (demos -> TaskSpec) ships in P4. Until then write specs "
-        "by hand — they are designed to be human-readable YAML (see specs/), and "
-        "load with woracle.load_spec(path)."
-    )
+def compile(
+    demos_dir: str,
+    prompt: str,
+    *,
+    name: str = "compiled-task",
+    out: str | None = None,
+    grounder: str = "relational.motion",
+) -> TaskSpec:
+    """Stage-1: compile a TaskSpec from demo episodes (or REFUSE loudly).
+
+    ``demos_dir`` holds episode dirs (rollout.json + frames payload). The
+    compiled spec is self-tested (demos must pass, minted negatives must
+    fail) before it is returned; a spec that cannot separate them raises
+    SpecError instead of pretending to be an oracle.
+    """
+    from woracle.compiler import compile_spec
+    from woracle.io import list_rollouts, load_frames
+
+    _ensure_plugins_loaded()
+    rollouts = list_rollouts(demos_dir)
+    if not rollouts:
+        raise WoracleError(f"no demo episodes found under {demos_dir!r}")
+    demo_frames = [load_frames(r) for r in rollouts]
+    spec = compile_spec(demo_frames, prompt, name=name, grounder=grounder)
+    if out:
+        import os
+
+        os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
+        with open(out, "w", encoding="utf-8") as f:
+            f.write(spec.to_yaml())
+    return spec
 
 
 def ground(*_args: object, **_kwargs: object):

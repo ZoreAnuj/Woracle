@@ -1,0 +1,608 @@
+{
+  "rows": [
+    {
+      "rollout": "act_010000_init_000",
+      "policy": "act_010000",
+      "n_frames": 1200,
+      "roles": {
+        "carried_object": {
+          "bound": true,
+          "quality": 0.25,
+          "reason": "MOTION-INCONSISTENT: expected 'co_moves_with_effector' but track range 2px (0.6% of diag) \u2014 likely false latch onto wrong object; 150/150 samples detected, 150 segmented, range=2px",
+          "early_real_window": {
+            "mean_vis": 0.7132,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.7115,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.724,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": -0.0108,
+          "track_jitter_p90": 0.15
+        },
+        "receptacle": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented, range=2px",
+          "early_real_window": {
+            "mean_vis": 0.4258,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.4305,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.4215,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0043,
+          "track_jitter_p90": 0.08
+        },
+        "gripper": {
+          "bound": true,
+          "quality": 0.25,
+          "reason": "MOTION-INCONSISTENT: expected 'actuated' but track range 6px (1.4% of diag) \u2014 likely false latch onto wrong object; 150/150 samples detected, 150 segmented, range=6px",
+          "early_real_window": {
+            "mean_vis": 0.4054,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.3898,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.3904,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.015,
+          "track_jitter_p90": 0.44
+        }
+      }
+    },
+    {
+      "rollout": "act_010000_init_001",
+      "policy": "act_010000",
+      "n_frames": 1200,
+      "roles": {
+        "carried_object": {
+          "bound": true,
+          "quality": 0.25,
+          "reason": "MOTION-INCONSISTENT: expected 'co_moves_with_effector' but track range 2px (0.5% of diag) \u2014 likely false latch onto wrong object; 150/150 samples detected, 150 segmented, range=2px",
+          "early_real_window": {
+            "mean_vis": 0.696,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.6831,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.6881,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0079,
+          "track_jitter_p90": 0.12
+        },
+        "receptacle": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented, range=1px",
+          "early_real_window": {
+            "mean_vis": 0.3884,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.3823,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.3859,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0025,
+          "track_jitter_p90": 0.05
+        },
+        "gripper": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented, range=32px",
+          "early_real_window": {
+            "mean_vis": 0.3435,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.3588,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.3448,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": -0.0013,
+          "track_jitter_p90": 0.08
+        }
+      }
+    },
+    {
+      "rollout": "act_050000_init_000",
+      "policy": "act_050000",
+      "n_frames": 1200,
+      "roles": {
+        "carried_object": {
+          "bound": true,
+          "quality": 0.25,
+          "reason": "MOTION-INCONSISTENT: expected 'co_moves_with_effector' but track range 2px (0.5% of diag) \u2014 likely false latch onto wrong object; 150/150 samples detected, 150 segmented, range=2px",
+          "early_real_window": {
+            "mean_vis": 0.6601,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.6125,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.6088,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0513,
+          "track_jitter_p90": 0.11
+        },
+        "receptacle": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented, range=2px",
+          "early_real_window": {
+            "mean_vis": 0.4346,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.4329,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.4301,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0045,
+          "track_jitter_p90": 0.09
+        },
+        "gripper": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented, range=17px",
+          "early_real_window": {
+            "mean_vis": 0.3595,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.4052,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.3911,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": -0.0316,
+          "track_jitter_p90": 0.6
+        }
+      }
+    },
+    {
+      "rollout": "act_050000_init_001",
+      "policy": "act_050000",
+      "n_frames": 1200,
+      "roles": {
+        "carried_object": {
+          "bound": true,
+          "quality": 0.25,
+          "reason": "MOTION-INCONSISTENT: expected 'co_moves_with_effector' but track range 2px (0.6% of diag) \u2014 likely false latch onto wrong object; 150/150 samples detected, 150 segmented, range=2px",
+          "early_real_window": {
+            "mean_vis": 0.6805,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.6988,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.6834,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": -0.0029,
+          "track_jitter_p90": 0.11
+        },
+        "receptacle": {
+          "bound": true,
+          "quality": 0.25,
+          "reason": "MOTION-INCONSISTENT: expected 'static' but track range 143px (34.3% of diag) \u2014 likely false latch onto wrong object; 150/150 samples detected, 150 segmented, range=143px",
+          "early_real_window": {
+            "mean_vis": 0.3488,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.3523,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.3577,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": -0.0089,
+          "track_jitter_p90": 0.65
+        },
+        "gripper": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented, range=139px",
+          "early_real_window": {
+            "mean_vis": 0.369,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.3484,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.3483,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0207,
+          "track_jitter_p90": 0.16
+        }
+      }
+    },
+    {
+      "rollout": "smolvla_init_000",
+      "policy": "smolvla",
+      "n_frames": 1200,
+      "roles": {
+        "carried_object": {
+          "bound": true,
+          "quality": 0.25,
+          "reason": "MOTION-INCONSISTENT: expected 'co_moves_with_effector' but track range 4px (1.1% of diag) \u2014 likely false latch onto wrong object; 150/150 samples detected, 150 segmented, range=4px",
+          "early_real_window": {
+            "mean_vis": 0.6301,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.6037,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.6206,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0095,
+          "track_jitter_p90": 0.14
+        },
+        "receptacle": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented, range=2px",
+          "early_real_window": {
+            "mean_vis": 0.4346,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.4339,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.4304,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0042,
+          "track_jitter_p90": 0.1
+        },
+        "gripper": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented, range=191px",
+          "early_real_window": {
+            "mean_vis": 0.3957,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.3799,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.2844,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.1113,
+          "track_jitter_p90": 0.92
+        }
+      }
+    },
+    {
+      "rollout": "smolvla_init_001",
+      "policy": "smolvla",
+      "n_frames": 1200,
+      "roles": {
+        "carried_object": {
+          "bound": true,
+          "quality": 0.25,
+          "reason": "MOTION-INCONSISTENT: expected 'co_moves_with_effector' but track range 3px (0.6% of diag) \u2014 likely false latch onto wrong object; 150/150 samples detected, 150 segmented, range=3px",
+          "early_real_window": {
+            "mean_vis": 0.6819,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.6723,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.6979,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": -0.016,
+          "track_jitter_p90": 0.12
+        },
+        "receptacle": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented, range=54px",
+          "early_real_window": {
+            "mean_vis": 0.4013,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.3458,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.3171,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0842,
+          "track_jitter_p90": 1.0
+        },
+        "gripper": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented, range=43px",
+          "early_real_window": {
+            "mean_vis": 0.3045,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.3815,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.3579,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": -0.0534,
+          "track_jitter_p90": 0.27
+        }
+      }
+    },
+    {
+      "rollout": "random_init_000",
+      "policy": "random",
+      "n_frames": 1200,
+      "roles": {
+        "carried_object": {
+          "bound": true,
+          "quality": 0.25,
+          "reason": "MOTION-INCONSISTENT: expected 'co_moves_with_effector' but track range 3px (0.6% of diag) \u2014 likely false latch onto wrong object; 150/150 samples detected, 150 segmented, range=3px",
+          "early_real_window": {
+            "mean_vis": 0.7046,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.7114,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.7205,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": -0.0159,
+          "track_jitter_p90": 0.15
+        },
+        "receptacle": {
+          "bound": true,
+          "quality": 0.25,
+          "reason": "MOTION-INCONSISTENT: expected 'static' but track range 123px (29.4% of diag) \u2014 likely false latch onto wrong object; 150/150 samples detected, 150 segmented, range=123px",
+          "early_real_window": {
+            "mean_vis": 0.3684,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.3619,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.3249,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0435,
+          "track_jitter_p90": 1.05
+        },
+        "gripper": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented, range=127px",
+          "early_real_window": {
+            "mean_vis": 0.3973,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.3744,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.3776,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0197,
+          "track_jitter_p90": 2.17
+        }
+      }
+    },
+    {
+      "rollout": "random_init_001",
+      "policy": "random",
+      "n_frames": 1200,
+      "roles": {
+        "carried_object": {
+          "bound": true,
+          "quality": 0.25,
+          "reason": "MOTION-INCONSISTENT: expected 'co_moves_with_effector' but track range 2px (0.6% of diag) \u2014 likely false latch onto wrong object; 150/150 samples detected, 150 segmented, range=2px",
+          "early_real_window": {
+            "mean_vis": 0.6729,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.6624,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.6798,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": -0.0069,
+          "track_jitter_p90": 0.12
+        },
+        "receptacle": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented, range=33px",
+          "early_real_window": {
+            "mean_vis": 0.4304,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.3812,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.4026,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0278,
+          "track_jitter_p90": 0.28
+        },
+        "gripper": {
+          "bound": true,
+          "quality": 1.0,
+          "reason": "150/150 samples detected, 150 segmented, range=139px",
+          "early_real_window": {
+            "mean_vis": 0.3467,
+            "frac_detected": 1.0
+          },
+          "mid_window": {
+            "mean_vis": 0.3283,
+            "frac_detected": 1.0
+          },
+          "late_window": {
+            "mean_vis": 0.3435,
+            "frac_detected": 1.0
+          },
+          "real_to_late_drop": 0.0032,
+          "track_jitter_p90": 3.3
+        }
+      }
+    }
+  ],
+  "aggregate": {
+    "per_policy": {
+      "act_010000": {
+        "carried_object": {
+          "bind_rate": 1.0,
+          "mean_quality": 0.25,
+          "mean_real_to_late_drop": -0.001
+        },
+        "receptacle": {
+          "bind_rate": 1.0,
+          "mean_quality": 1.0,
+          "mean_real_to_late_drop": 0.003
+        },
+        "gripper": {
+          "bind_rate": 1.0,
+          "mean_quality": 0.625,
+          "mean_real_to_late_drop": 0.007
+        }
+      },
+      "act_050000": {
+        "carried_object": {
+          "bind_rate": 1.0,
+          "mean_quality": 0.25,
+          "mean_real_to_late_drop": 0.024
+        },
+        "receptacle": {
+          "bind_rate": 1.0,
+          "mean_quality": 0.625,
+          "mean_real_to_late_drop": -0.002
+        },
+        "gripper": {
+          "bind_rate": 1.0,
+          "mean_quality": 1.0,
+          "mean_real_to_late_drop": -0.005
+        }
+      },
+      "smolvla": {
+        "carried_object": {
+          "bind_rate": 1.0,
+          "mean_quality": 0.25,
+          "mean_real_to_late_drop": -0.003
+        },
+        "receptacle": {
+          "bind_rate": 1.0,
+          "mean_quality": 1.0,
+          "mean_real_to_late_drop": 0.044
+        },
+        "gripper": {
+          "bind_rate": 1.0,
+          "mean_quality": 1.0,
+          "mean_real_to_late_drop": 0.029
+        }
+      },
+      "random": {
+        "carried_object": {
+          "bind_rate": 1.0,
+          "mean_quality": 0.25,
+          "mean_real_to_late_drop": -0.011
+        },
+        "receptacle": {
+          "bind_rate": 1.0,
+          "mean_quality": 0.625,
+          "mean_real_to_late_drop": 0.036
+        },
+        "gripper": {
+          "bind_rate": 1.0,
+          "mean_quality": 1.0,
+          "mean_real_to_late_drop": 0.011
+        }
+      }
+    },
+    "notes": [
+      "No per-frame human boxes exist for these rollouts; metrics are label-free observables (bind rate, real-vs-generated detection gap, persistence).",
+      "Frame-0 window is REAL (WM rollouts start from a real observation); late window is fully generated \u2014 the drop is the generative-degradation signal."
+    ]
+  },
+  "config": {
+    "stride": 8,
+    "det_threshold": 0.2,
+    "per_policy": 2,
+    "grounder": {
+      "stride": 8,
+      "det_threshold": 0.2,
+      "text_threshold": 0.2,
+      "iou_weight": 0.3,
+      "max_jump_frac": 0.35,
+      "segment_every": 1,
+      "tiles": 2,
+      "detector": "IDEA-Research/grounding-dino-tiny",
+      "segmenter": "facebook/sam-vit-base"
+    }
+  }
+}

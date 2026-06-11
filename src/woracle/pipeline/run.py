@@ -60,6 +60,10 @@ class GradeRunConfig:
     # Verdict mapping for verdict-eligible channel values (P3 replaces this
     # scalar with a proper Condition object; it must NOT live in channel code).
     pass_threshold: float = 0.5
+    # Constructor kwargs per component name (e.g. demo tracks for the DTW
+    # channel, a VLM backend for progress.gvl). NOT part of cache keys —
+    # components expose cache-relevant params via their `params` property.
+    component_params: dict = field(default_factory=dict)
     seeds: dict[str, int] = field(default_factory=dict)
 
     def fresh(self, **overrides: object) -> GradeRunConfig:
@@ -70,6 +74,8 @@ class GradeRunConfig:
         intent).
         """
         cfg = replace(self, **overrides)  # type: ignore[arg-type]
+        if "component_params" not in overrides:
+            cfg.component_params = dict(self.component_params)
         if "policy" not in overrides:
             cfg.policy = self.policy.model_copy(deep=True)
         if "signals" not in overrides:
@@ -128,7 +134,7 @@ def _ground_cached(
         component=grounder.name,
         component_version=grounder.version,
         inputs={"frames": _frames_digest(rollout), "spec": spec.content_hash()},
-        params={},
+        params=dict(getattr(grounder, "params", {})),
     )
 
     def writer(payload_dir: str) -> None:
@@ -221,9 +227,10 @@ def grade_rollouts(
     store = ContentStore(config.store_root)
     os.makedirs(os.path.join(config.out_dir, "cards"), exist_ok=True)
 
-    grounder = reg_get("grounder", config.grounder)()
-    signal_objs = [reg_get("gate_signal", s)() for s in config.signals]
-    channel_objs = [reg_get("channel", c)() for c in config.channels]
+    cp = config.component_params
+    grounder = reg_get("grounder", config.grounder)(**cp.get(config.grounder, {}))
+    signal_objs = [reg_get("gate_signal", s)(**cp.get(s, {})) for s in config.signals]
+    channel_objs = [reg_get("channel", c)(**cp.get(c, {})) for c in config.channels]
 
     components = {
         f"grounder:{grounder.name}": grounder.version,

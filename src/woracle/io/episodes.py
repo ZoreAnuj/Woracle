@@ -77,6 +77,12 @@ def load_frames(ref: RolloutRef) -> np.ndarray:
     path = ref.frames.resolve(base) if base else ref.frames.path
     if not os.path.isfile(path):
         raise StoreError(f"frames payload not found: {path}")
+    if path.endswith((".mp4", ".avi", ".mkv", ".webm")):
+        from woracle.io.video import decode_video
+
+        max_side = int(ref.meta["decode_max_side"]) if "decode_max_side" in ref.meta else None
+        frames, _fps = decode_video(path, max_side=max_side)
+        return frames
     with np.load(path) as z:
         return z["frames"]
 
