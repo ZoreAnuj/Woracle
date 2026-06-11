@@ -1,0 +1,99 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "woracle"
+version = "0.0.1.dev0"
+description = "Woracle — the world-model oracle. Compiles evaluation oracles for world-model policy rollouts from demonstrations. Demos in, oracle out."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Anuj Zore" }]
+keywords = ["world-models", "robotics", "evaluation", "policy-evaluation", "video"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+# KERNEL RULE: core deps stay feather-light. No torch, no cv2, no transformers — ever.
+dependencies = [
+  "numpy>=1.24",
+  "pydantic>=2.5",
+  "pyyaml>=6.0",
+  "typer>=0.12",
+]
+
+[project.optional-dependencies]
+# Heavy stacks land here in later phases (P1+). Kept as named placeholders so the
+# extra names are stable from day one.
+ground = []   # P1: open-vocab detect + segment (GroundingDINO/SAM2 via transformers ports)
+track = []    # P1: point tracking (TAPNext / tapnet)
+judge = []    # P3: VLM judge backends
+"3d" = []     # P1-opt: TAPIP3D / metric depth
+all = ["woracle[ground,track,judge,3d]"]
+
+[project.scripts]
+woracle = "woracle.cli.main:app"
+
+[project.urls]
+Homepage = "https://github.com/ZoreAnuj/woracle"
+
+[dependency-groups]
+test = [
+  "pytest>=8.0",
+  "pytest-socket>=0.7",
+  "hypothesis>=6.100",
+]
+dev = [
+  { include-group = "test" },
+  "ruff>=0.8",
+  "pyright>=1.1.390",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/woracle"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers --disable-socket --allow-unix-socket"
+markers = [
+  "slow: long-running tests (RUN_SLOW=1 to enable)",
+  "gpu: requires a CUDA GPU",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "TC"]
+ignore = [
+  "E501",   # line length handled by formatter
+  "SIM108", # ternary is not always clearer
+]
+
+[tool.ruff.lint.flake8-type-checking]
+# pydantic resolves field annotations at class-build time — imports backing
+# model fields must stay runtime imports. Ruff cannot resolve base classes
+# across modules, so OUR bases must be listed alongside pydantic's.
+runtime-evaluated-base-classes = [
+  "pydantic.BaseModel",
+  "woracle.contracts.base.WoracleModel",
+  "woracle.contracts.base.VersionedModel",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["B011", "RUF012", "TC"]
+
+[tool.pyright]
+include = ["src"]
+pythonVersion = "3.10"
+typeCheckingMode = "standard"
+reportMissingImports = "warning"

@@ -1,0 +1,129 @@
+{
+  "$defs": {
+    "PolicySummary": {
+      "additionalProperties": false,
+      "properties": {
+        "mean_channel_values": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Mean Channel Values",
+          "type": "object"
+        },
+        "n_abstained": {
+          "title": "N Abstained",
+          "type": "integer"
+        },
+        "n_gradeable": {
+          "title": "N Gradeable",
+          "type": "integer"
+        },
+        "n_rollouts": {
+          "title": "N Rollouts",
+          "type": "integer"
+        },
+        "pass_rate_on_graded": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pass Rate On Graded"
+        },
+        "policy": {
+          "title": "Policy",
+          "type": "string"
+        }
+      },
+      "required": [
+        "policy",
+        "n_rollouts",
+        "n_gradeable",
+        "n_abstained"
+      ],
+      "title": "PolicySummary",
+      "type": "object"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "description": "Who/what produced an artifact. Embedded in every output document.",
+      "properties": {
+        "components": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Components",
+          "type": "object"
+        },
+        "created_at": {
+          "default": "",
+          "title": "Created At",
+          "type": "string"
+        },
+        "extra": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Extra",
+          "type": "object"
+        },
+        "git_sha": {
+          "default": "",
+          "title": "Git Sha",
+          "type": "string"
+        },
+        "package_version": {
+          "default": "",
+          "title": "Package Version",
+          "type": "string"
+        }
+      },
+      "title": "Provenance",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Comparison across policies, assembled from GradeCards (snapshots only).\n\nHonesty invariants surfaced at this level:\n* abstention rate is reported PER POLICY (informative missingness);\n* pass rates are labeled as on-graded-rollouts-only until P5 calibration.",
+  "properties": {
+    "notes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Notes",
+      "type": "array"
+    },
+    "policies": {
+      "items": {
+        "$ref": "#/$defs/PolicySummary"
+      },
+      "title": "Policies",
+      "type": "array"
+    },
+    "provenance": {
+      "$ref": "#/$defs/Provenance"
+    },
+    "schema_version": {
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "spec_hash": {
+      "title": "Spec Hash",
+      "type": "string"
+    },
+    "spec_name": {
+      "title": "Spec Name",
+      "type": "string"
+    }
+  },
+  "required": [
+    "spec_name",
+    "spec_hash"
+  ],
+  "title": "Leaderboard",
+  "type": "object"
+}

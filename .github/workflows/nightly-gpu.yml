@@ -1,0 +1,14 @@
+# Nightly GPU lane — activates in P1 when the first heavy components land.
+# PR CI stays CPU-hermetic forever (transformers RUN_SLOW discipline).
+name: nightly-gpu
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "GPU suite lands in P1 (RUN_SLOW=1, @gpu markers, self-hosted runner)."

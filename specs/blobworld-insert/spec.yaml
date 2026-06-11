@@ -1,0 +1,88 @@
+schema_version: 1
+name: blobworld-insert
+prompt: insert the red block into the green cup
+roles:
+- name: carried_object
+  definition: the object that co-moves with the gripper and is placed
+  motion: co_moves_with_effector
+  candidates:
+  - red block
+  - red square
+  required: true
+- name: receptacle
+  definition: the static container the object must end up inside
+  motion: static
+  candidates:
+  - green cup
+  - green container
+  required: true
+- name: gripper
+  definition: the end-effector doing the carrying
+  motion: actuated
+  candidates:
+  - blue gripper
+  - blue dot
+  required: false
+phases:
+- name: approach
+  description: carried object approaches the cup
+  order: 0
+  active:
+  - kind: approaching
+    subject: carried_object
+    object: receptacle
+    params: {}
+- name: insert
+  description: object enters the cup interior
+  order: 1
+  active:
+  - kind: contained
+    subject: carried_object
+    object: receptacle
+    params: {}
+- name: settle
+  description: object rests inside the cup
+  order: 2
+  active:
+  - kind: stationary
+    subject: carried_object
+    object: null
+    params: {}
+success:
+- kind: contained
+  subject: carried_object
+  object: receptacle
+  params:
+    erode_px: 5.0
+- kind: stationary
+  subject: carried_object
+  object: null
+  params:
+    tol: 1.5
+failure_modes:
+- name: missed
+  description: object ends outside the receptacle
+  signature: []
+- name: dropped
+  description: object detaches before the receptacle
+  signature: []
+success_sustain_frames: 5
+tl_formula: ''
+version: 1
+spec_provenance:
+  demo_digests: []
+  compiler: handwritten
+  self_test:
+    ran: false
+    demos_passed: 0
+    demos_total: 0
+    negatives_failed: 0
+    negatives_total: 0
+    accepted: false
+    notes: ''
+  provenance:
+    package_version: ''
+    git_sha: ''
+    created_at: ''
+    components: {}
+    extra: {}

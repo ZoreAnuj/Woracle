@@ -1,0 +1,205 @@
+{
+  "$defs": {
+    "ArtifactRef": {
+      "additionalProperties": false,
+      "description": "Reference to a sidecar payload file (npz / parquet / mp4 / safetensors).\n\n``path`` is relative to the directory of the JSON document that holds the\nref, so artifact bundles stay relocatable.",
+      "properties": {
+        "kind": {
+          "default": "",
+          "title": "Kind",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "default": "",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "ArtifactRef",
+      "type": "object"
+    },
+    "RoleBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "bound": {
+          "title": "Bound",
+          "type": "boolean"
+        },
+        "masks": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ArtifactRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "quality": {
+          "default": 0.0,
+          "title": "Quality",
+          "type": "number"
+        },
+        "reason": {
+          "default": "",
+          "title": "Reason",
+          "type": "string"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        },
+        "tracks": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ArtifactRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "visibility": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ArtifactRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "role",
+        "bound"
+      ],
+      "title": "RoleBinding",
+      "type": "object"
+    },
+    "RolloutRef": {
+      "additionalProperties": false,
+      "description": "A single episode (generated rollout or demonstration).",
+      "properties": {
+        "actions": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ArtifactRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "fps": {
+          "default": 10.0,
+          "title": "Fps",
+          "type": "number"
+        },
+        "frames": {
+          "$ref": "#/$defs/ArtifactRef"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "meta": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Meta",
+          "type": "object"
+        },
+        "n_frames": {
+          "default": 0,
+          "title": "N Frames",
+          "type": "integer"
+        },
+        "policy": {
+          "default": "",
+          "title": "Policy",
+          "type": "string"
+        },
+        "schema_version": {
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "source": {
+          "default": "",
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "frames"
+      ],
+      "title": "RolloutRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Everything Stage-2 produced for one rollout. Pure stages read only this.",
+  "properties": {
+    "bindings": {
+      "items": {
+        "$ref": "#/$defs/RoleBinding"
+      },
+      "title": "Bindings",
+      "type": "array"
+    },
+    "bundle_dir": {
+      "default": "",
+      "title": "Bundle Dir",
+      "type": "string"
+    },
+    "extras": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Extras",
+      "type": "object"
+    },
+    "grounder": {
+      "default": "",
+      "title": "Grounder",
+      "type": "string"
+    },
+    "rollout": {
+      "$ref": "#/$defs/RolloutRef"
+    },
+    "schema_version": {
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "spec_hash": {
+      "title": "Spec Hash",
+      "type": "string"
+    },
+    "spec_name": {
+      "title": "Spec Name",
+      "type": "string"
+    }
+  },
+  "required": [
+    "rollout",
+    "spec_name",
+    "spec_hash",
+    "bindings"
+  ],
+  "title": "GroundedRollout",
+  "type": "object"
+}
