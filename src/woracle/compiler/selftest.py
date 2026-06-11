@@ -15,11 +15,14 @@ from __future__ import annotations
 import os
 import tempfile
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
-import numpy as np
-
-from woracle.contracts import TaskSpec
 from woracle.io import load_rollout, save_episode
+
+if TYPE_CHECKING:
+    import numpy as np
+
+    from woracle.contracts import TaskSpec
 from woracle.registry import get as reg_get
 
 

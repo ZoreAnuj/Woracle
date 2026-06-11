@@ -136,7 +136,9 @@ class AppearanceConsistencySignal:
     @staticmethod
     def _patch(gray: np.ndarray, frames_hsl: np.ndarray, xy: np.ndarray, c: int):
         H, W = gray.shape
-        x, y = int(round(xy[0])), int(round(xy[1]))
+        # np.round (not builtin round): numpy scalars round to numpy floats,
+        # so the int() casts are REQUIRED — builtin-round would trip RUF046.
+        x, y = int(np.round(xy[0])), int(np.round(xy[1]))
         x0, x1 = max(0, x - c), min(W, x + c)
         y0, y1 = max(0, y - c), min(H, y + c)
         if x1 - x0 < 4 or y1 - y0 < 4:

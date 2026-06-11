@@ -30,7 +30,7 @@ def _ground(frames, tmp_path, name):
 def test_dtw_identity_and_ordering() -> None:
     a = np.stack([np.linspace(0, 10, 20), np.zeros(20)], 1)
     b = a[::2]  # same path, different sampling
-    c = a + [0.0, 8.0]  # parallel path, offset
+    c = a + np.array([0.0, 8.0])  # parallel path, offset (numpy broadcast)
     assert dtw_distance(a, a) == 0.0
     assert dtw_distance(a, b) < 0.5
     assert dtw_distance(a, c) > dtw_distance(a, b)

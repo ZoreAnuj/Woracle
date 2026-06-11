@@ -8,8 +8,10 @@ output = one portable .html file.
 from __future__ import annotations
 
 import html as _html
+from typing import TYPE_CHECKING
 
-from woracle.contracts import GradeCard, Leaderboard
+if TYPE_CHECKING:
+    from woracle.contracts import GradeCard, Leaderboard
 
 _CSS = """
 body{font-family:system-ui,sans-serif;margin:2rem;color:#222;max-width:1100px}

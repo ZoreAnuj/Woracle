@@ -90,7 +90,7 @@ def _probe_fps(path: str) -> float:
 def _resize_batch(frames: np.ndarray, max_side: int) -> np.ndarray:
     """Nearest-neighbor batch resize (numpy-only; adequate for detection input
     which the grounder's models re-resize anyway)."""
-    t, h, w, _ = frames.shape
+    _t, h, w, _ = frames.shape
     scale = max_side / max(h, w)
     nh, nw = max(1, round(h * scale)), max(1, round(w * scale))
     yi = np.clip((np.arange(nh) / scale).astype(int), 0, h - 1)

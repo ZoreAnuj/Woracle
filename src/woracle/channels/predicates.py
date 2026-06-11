@@ -124,7 +124,7 @@ def eval_predicate(
         return _missing(pred, f"no track for role '{pred.object}'")
 
     def _resolved_tol(default: float) -> float:
-        """Scale-relative tolerance: tol_rel × sqrt(object mask area) makes a
+        """Scale-relative tolerance: tol_rel x sqrt(object mask area) makes a
         spec transfer across scenes/resolutions; absolute px tol stays as the
         fallback (and is what hand-written specs use)."""
         if "tol_rel" in pred.params and obj.mask is not None:

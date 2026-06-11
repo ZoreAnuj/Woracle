@@ -3,14 +3,14 @@
 The P5 statistics core: many judge-scored rollouts + a few gold labels give
 an UNBIASED estimate of the true success rate with a valid CI — the judge's
 systematic error is measured on the labeled subset and subtracted
-(Angelopoulos et al., PPI; power-tuned λ per PPI++).
+(Angelopoulos et al., PPI; power-tuned lam per PPI++).
 
-    θ̂(λ) = λ·mean(f(X_unlab)) + mean(Y_lab − λ·f(X_lab))
-    Var   = λ²·var(f_unlab)/N + var(Y_lab − λ·f_lab)/n
+    theta(lam) = lam*mean(f(X_unlab)) + mean(Y_lab - lam*f(X_lab))
+    Var   = lam^2*var(f_unlab)/N + var(Y_lab - lam*f_lab)/n
     (sets are DISJOINT — overlapping them breaks the independence the
     variance formula needs; measured: coverage 0.88 vs nominal 0.90)
-    λ*    chosen to minimize Var (clipped to [0, 1]); λ=1 is classic PPI,
-    λ=0 degenerates to the gold-only (classical) estimate.
+    lam*    chosen to minimize Var (clipped to [0, 1]); lam=1 is classic PPI,
+    lam=0 degenerates to the gold-only (classical) estimate.
 
 Stdlib + numpy only (NormalDist for quantiles) — the kernel rule holds.
 """
