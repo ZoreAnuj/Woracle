@@ -1,0 +1,21 @@
+# Tag-driven release via PyPI Trusted Publishing (tokenless OIDC).
+# Setup once on pypi.org: Publishing -> add pending publisher
+#   project=woracle  owner=ZoreAnuj  repo=Woracle  workflow=release.yml
+name: release
+on:
+  push:
+    tags: ["v*"]
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --group test
+      - run: uv run pytest
+      - run: uv build
+      - uses: pypa/gh-action-pypi-publish@release/v1

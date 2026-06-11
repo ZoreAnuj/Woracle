@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "woracle"
-version = "0.0.1.dev0"
+version = "0.1.0.dev0"
 description = "Woracle — the world-model oracle. Compiles evaluation oracles for world-model policy rollouts from demonstrations. Demos in, oracle out."
 readme = "README.md"
 requires-python = ">=3.10"

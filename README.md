@@ -12,10 +12,14 @@ a prompt and a few demonstrations, then grades policy rollouts from **any** worl
 against it — with calibrated honesty (it abstains when a rollout is ungradeable, e.g. when
 the WM deleted the object) and statistics that treat abstention as information.
 
-> ⚠️ **Status: P0 (foundations).** The kernel, contracts, gate/grading pipeline, and the
-> blobworld test world are real; real-video grounders (P1), VLM channels (P3), the spec
-> compiler (P4), and calibrated statistics (P5) are landing phase by phase.
-> Not yet on PyPI. APIs will move.
+> **Status: 0.1 pre-release.** All six stages are implemented and tested: real
+> open-vocab grounding (GroundingDINO+SAM) with motion-signature verification,
+> a calibratable validity gate (AUROC ≥ 0.8 on the generative-corruption
+> benchmark, enforced in CI), progress/phase/trajectory/TL-DTMC channels, a
+> GVL VLM judge protocol, the demos→spec COMPILER with self-test/REFUSE
+> (cross-scene transfer demonstrated), and PPI/MNAR honesty statistics.
+> Validated on real Cosmos-3 WM rollouts (see `studies/binding/REPORT.md`).
+> Not yet on PyPI (pending); APIs may still move before 0.1.
 
 ## The shape
 
@@ -52,17 +56,30 @@ woracle doctor
 ```python
 import woracle
 
-spec  = woracle.load_spec("specs/blobworld-insert/spec.yaml")
-cards = woracle.grade("rollouts/", spec, out_dir="out")    # grade cards (snapshots)
-board = woracle.report(cards, out_path="leaderboard.md")   # abstain-aware leaderboard
-# woracle.compile(demos, prompt)  ->  P4
-# woracle.ground(rollouts, spec)  ->  P1
+# the four verbs — all real
+spec  = woracle.compile("demos/", "insert the tip into the holder",
+                        out="specs/mytask/spec.yaml")       # self-tested, or REFUSEs
+bundles = woracle.ground("rollouts/", spec)                  # bind roles to pixels
+cards = woracle.grade("rollouts/", spec, out_dir="out")      # gate -> channels -> verdicts
+board = woracle.report("out/cards", "leaderboard.md",
+                       golds="golds.json",                   # optional: PPI rectification
+                       html_path="report.html")              # abstain-aware, MNAR-bounded
 ```
 
-## Design
+Real-video grounding (`pip install 'woracle[ground]'`):
+GroundingDINO-tiny + SAM via transformers (Apache models), detection-linked
+tracking with motion-signature verification — binding-study-honest: detector
+confidence is documented as content-blind on generated video; geometry checks
+catch what confidence cannot (8/8 false latches in the study).
 
-- `WM_EVAL_TOOLKIT_PROPOSAL.md` — research map (~140 works) + pipeline design
-- `WM_EVAL_TOOLKIT_ARCH.md` — architecture decisions, with receipts
+## Design & evidence
+
+- `studies/binding/REPORT.md` — field-first measurements of open-vocab binding
+  on real WM rollouts (confidence inversion, false-latch detection, anchor drift)
+- `docs/PLUGINS.md` — plugin-author guide + conformance suite
+- Design docs (research map ~140 works, architecture decisions with receipts)
+  live in the companion workspace; ask for `WM_EVAL_TOOLKIT_PROPOSAL.md` /
+  `WM_EVAL_TOOLKIT_ARCH.md`
 - Kernel rule: `import woracle` pulls numpy+pydantic only (CI-enforced); heavy stacks live
   behind extras `[ground] [track] [judge] [3d]` and load lazily at call time.
 
