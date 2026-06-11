@@ -19,8 +19,8 @@ class PolicyBounds:
     n_pass: int
     n_fail: int
     n_abstain: int
-    rate_low: float    # every abstain counted as fail
-    rate_high: float   # every abstain counted as pass
+    rate_low: float  # every abstain counted as fail
+    rate_high: float  # every abstain counted as pass
 
     @property
     def abstain_frac(self) -> float:
@@ -30,7 +30,7 @@ class PolicyBounds:
 @dataclass(frozen=True)
 class SensitivityReport:
     bounds: list[PolicyBounds]
-    robust_pairs: list[tuple[str, str]] = field(default_factory=list)   # a > b always
+    robust_pairs: list[tuple[str, str]] = field(default_factory=list)  # a > b always
     undetermined_pairs: list[tuple[str, str]] = field(default_factory=list)
 
     @property
@@ -48,7 +48,11 @@ def abstention_sensitivity(verdicts_by_policy: dict[str, list[str]]) -> Sensitiv
         n_abstain = n - n_pass - n_fail
         bounds.append(
             PolicyBounds(
-                policy=policy, n=n, n_pass=n_pass, n_fail=n_fail, n_abstain=n_abstain,
+                policy=policy,
+                n=n,
+                n_pass=n_pass,
+                n_fail=n_fail,
+                n_abstain=n_abstain,
                 rate_low=(n_pass / n) if n else 0.0,
                 rate_high=((n_pass + n_abstain) / n) if n else 0.0,
             )

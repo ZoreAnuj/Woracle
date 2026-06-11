@@ -50,11 +50,13 @@ def parse_progress_reply(text: str, n_frames: int) -> list[float | None]:
                     slots[k] = min(max(val, 0), 100) / 100.0
             return slots
 
-        one_indexed, zero_indexed = fill(1), fill(0)
-        n1 = sum(v is not None for v in one_indexed)
-        n0 = sum(v is not None for v in zero_indexed)
-        out = one_indexed if n1 >= n0 else zero_indexed
-        matched = max(n1, n0) > 0
+        # offsets: 1 = prompt convention; 0 = zero-indexed model; 2 = model
+        # counted the anchor image as "Frame 1" (observed failure family)
+        candidates = [
+            (sum(v is not None for v in f), off, f) for off in (1, 0, 2) for f in [fill(off)]
+        ]
+        n_best, _off, out = max(candidates, key=lambda c: (c[0], -abs(c[1] - 1)))
+        matched = n_best > 0
     if not matched:
         bare = [min(max(int(v), 0), 100) / 100.0 for v in _BARE.findall(text)]
         for i, v in enumerate(bare[:n_frames]):
@@ -71,8 +73,24 @@ def value_order_correlation(values: list[float], chronological_rank: list[int]) 
     r = np.asarray(chronological_rank, float)
     if len(v) < 3 or np.allclose(v, v[0]) or np.allclose(r, r[0]):
         return 0.0
-    rv = v.argsort().argsort().astype(float)
-    rr = r.argsort().argsort().astype(float)
+
+    def avg_ranks(x: np.ndarray) -> np.ndarray:
+        # AVERAGE ranks under ties — ordinal (argsort²) ranks break ties in
+        # array order, which for tie-heavy degenerate VLM replies inflates
+        # VOC toward +1 (measured: [0,0,0,1] -> 1.0 ordinal vs 0.775 true).
+        order = np.argsort(x, kind="mergesort")
+        ranks = np.empty(len(x), float)
+        sx = x[order]
+        i = 0
+        while i < len(sx):
+            j = i
+            while j + 1 < len(sx) and sx[j + 1] == sx[i]:
+                j += 1
+            ranks[order[i : j + 1]] = (i + j) / 2.0
+            i = j + 1
+        return ranks
+
+    rv, rr = avg_ranks(v), avg_ranks(r)
     rv -= rv.mean()
     rr -= rr.mean()
     denom = float(np.sqrt((rv**2).sum() * (rr**2).sum()))

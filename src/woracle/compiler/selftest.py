@@ -32,22 +32,19 @@ class SelfTestOutcome:
     notes: str = ""
 
 
-def _verdict(spec: TaskSpec, frames: np.ndarray, grounder, workdir: str, tag: str) -> bool | None:
-    """True=pass, False=fail, None=unevaluable (counts as fail for demos and
-    as 'failed' for negatives — an oracle that can't read its own demos is
-    not accepted, and an unreadable negative is at least not a false pass)."""
-    from woracle.testing.plugins import PredicateSuccessChannel
+def _ground_once(spec: TaskSpec, frames: np.ndarray, grounder, workdir: str, tag: str):
+    """Ground one episode through the REAL grading path (no shortcuts).
 
+    Verdict semantics downstream: unevaluable counts as not-passed for demos
+    and as not-a-false-pass for negatives — an oracle that can't read its own
+    demos is never accepted.
+    """
     ep = os.path.join(workdir, f"ep_{tag}")
     save_episode(ep, f"st_{tag}", frames, source="selftest")
     ref = load_rollout(ep)
     gdir = os.path.join(workdir, f"g_{tag}")
     os.makedirs(gdir, exist_ok=True)
-    grounded = grounder.ground(ref, spec, gdir)
-    score = PredicateSuccessChannel().score(grounded, spec)
-    if score.status != "ok" or score.value is None:
-        return None
-    return bool(score.value >= 0.5)
+    return grounder.ground(ref, spec, gdir)
 
 
 def run_selftest(
@@ -59,40 +56,51 @@ def run_selftest(
     max_rounds: int = 6,
 ) -> SelfTestOutcome:
     g = reg_get("grounder", grounder)()
+    from woracle.channels.verdict import PredicateSuccessChannel  # real channel
+
     base_tol = None
     for pred in spec.success:
         if pred.kind == "co_located" and "tol_rel" in pred.params:
             base_tol = float(pred.params["tol_rel"])
     grid = [1.0] if base_tol is None else [0.6, 0.8, 1.0, 1.3, 1.7, 2.2][:max_rounds]
 
-    best = None  # (demos_passed, negatives_failed, tol_mult, notes)
+    best = None  # (demos_passed, negatives_failed, tol_mult)
     with tempfile.TemporaryDirectory(prefix="woracle-selftest-") as workdir:
-        # Ground once per episode per tolerance? Grounding is tolerance-
-        # independent — ground ONCE, re-evaluate predicates per tolerance.
-        grounded_demos = []
+        # Ground each episode exactly ONCE (grounding is tolerance-independent);
+        # only the predicate evaluation re-runs per tolerance. Every minted
+        # negative gets a UNIQUE tag — the C-1 lesson: a provenance count must
+        # never be aggregated from aliased cache entries.
+        episodes: list[tuple[str, str]] = []  # (kind, unique_tag)
+        grounded_by_tag: dict[str, object] = {}
         for i, frames in enumerate(demos):
-            grounded_demos.append(("demo", i, frames))
-        all_eps = grounded_demos + [("neg", kind, fr) for kind, fr in negatives]
+            tag = f"demo{i}"
+            grounded_by_tag[tag] = _ground_once(spec, frames, g, workdir, tag)
+            episodes.append(("demo", tag))
+        for i, (kind, frames) in enumerate(negatives):
+            tag = f"neg{i}_{kind}"
+            grounded_by_tag[tag] = _ground_once(spec, frames, g, workdir, tag)
+            episodes.append(("neg", tag))
 
-        verdict_cache: dict[tuple[str, str, float], bool | None] = {}
         for mult in grid:
             trial = spec.model_copy(deep=True)
             for pred in trial.success:
                 if pred.kind == "co_located" and "tol_rel" in pred.params and base_tol:
                     pred.params["tol_rel"] = base_tol * mult
             dp = nf = 0
-            for kind, tag, frames in all_eps:
-                key = (kind, str(tag), mult)
-                if key not in verdict_cache:
-                    verdict_cache[key] = _verdict(trial, frames, g, workdir, f"{kind}{tag}_{mult}")
-                v = verdict_cache[key]
+            for kind, tag in episodes:
+                grounded = grounded_by_tag[tag]
+                score = PredicateSuccessChannel().score(grounded, trial)
+                v = (
+                    None
+                    if (score.status != "ok" or score.value is None)
+                    else bool(score.value >= 0.5)
+                )
                 if kind == "demo":
                     dp += 1 if v is True else 0
                 else:
                     nf += 1 if (v is False or v is None) else 0
-            cand = (dp, nf, mult)
             if best is None or (dp, nf) > (best[0], best[1]):
-                best = cand
+                best = (dp, nf, mult)
             if dp == len(demos) and nf == len(negatives):
                 final = spec.model_copy(deep=True)
                 for pred in final.success:

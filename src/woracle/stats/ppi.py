@@ -5,8 +5,10 @@ an UNBIASED estimate of the true success rate with a valid CI — the judge's
 systematic error is measured on the labeled subset and subtracted
 (Angelopoulos et al., PPI; power-tuned λ per PPI++).
 
-    θ̂(λ) = λ·mean(f(X_all)) + mean(Y_lab − λ·f(X_lab))
-    Var   = λ²·var(f_all)/N + var(Y_lab − λ·f_lab)/n
+    θ̂(λ) = λ·mean(f(X_unlab)) + mean(Y_lab − λ·f(X_lab))
+    Var   = λ²·var(f_unlab)/N + var(Y_lab − λ·f_lab)/n
+    (sets are DISJOINT — overlapping them breaks the independence the
+    variance formula needs; measured: coverage 0.88 vs nominal 0.90)
     λ*    chosen to minimize Var (clipped to [0, 1]); λ=1 is classic PPI,
     λ=0 degenerates to the gold-only (classical) estimate.
 
@@ -28,10 +30,10 @@ class PPIEstimate:
     estimate: float
     ci_low: float
     ci_high: float
-    lam: float                  # power-tuning weight actually used
+    lam: float  # power-tuning weight actually used
     n_unlabeled: int
     n_labeled: int
-    classical_width: float      # gold-only CI width, for the honesty comparison
+    classical_width: float  # gold-only CI width, for the honesty comparison
     width: float
 
     @property
@@ -40,20 +42,21 @@ class PPIEstimate:
 
 
 def ppi_mean(
-    judge_all: np.ndarray,
+    judge_unlabeled: np.ndarray,
     judge_labeled: np.ndarray,
     gold_labeled: np.ndarray,
     *,
     alpha: float = 0.1,
     tune_lambda: bool = True,
 ) -> PPIEstimate:
-    """PPI estimate of E[Y] from judge scores everywhere + gold on a subset.
+    """PPI estimate of E[Y]: judge scores on the UNLABELED set + judge & gold
+    on the DISJOINT labeled subset.
 
-    judge_all     : (N,) judge scores on ALL rollouts (continuous or 0/1)
-    judge_labeled : (n,) judge scores on the gold-labeled subset
-    gold_labeled  : (n,) ground-truth outcomes on that subset
+    judge_unlabeled : (N,) judge scores on rollouts WITHOUT gold labels
+    judge_labeled   : (n,) judge scores on the gold-labeled subset
+    gold_labeled    : (n,) ground-truth outcomes on that subset
     """
-    f_all = np.asarray(judge_all, float)
+    f_all = np.asarray(judge_unlabeled, float)
     f_lab = np.asarray(judge_labeled, float)
     y_lab = np.asarray(gold_labeled, float)
     if f_lab.shape != y_lab.shape or f_lab.ndim != 1:

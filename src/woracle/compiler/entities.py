@@ -151,12 +151,12 @@ def classify_relational(
     never by appearance:
 
     * carried_object — a mover that ends stationary nearest a static entity
-    * effector       — the other mover (separates from the carried one at the
-                       end in successful demos; tie-broken by final speed)
+    * effector       — the other mover (ties broken by velocity correlation
+                       with the carried object during transport)
     * receptacle     — the static entity nearest the carried object's end
 
-    Returns possibly-None slots plus an ``ambiguous`` marker entity-pair when
-    two movers never separate (recorded honestly; binding quality drops).
+    Returns possibly-None slots. (Never-separating mover pairs are detected
+    and quality-penalized by the relational GROUNDER, not here.)
     """
     movers = [e for e in entities if e.stats["range_frac"] >= moving_frac]
     statics = [e for e in entities if e.stats["range_frac"] < moving_frac]
@@ -178,15 +178,6 @@ def classify_relational(
         if len(idx) == 0:
             idx = np.flatnonzero(obs)
         return e.track[idx].mean(axis=0)
-
-    def final_speed(e: Entity) -> float:
-        obs = np.isfinite(e.track[:, 0])
-        T = len(e.track)
-        idx = np.flatnonzero(obs & (np.arange(T) >= int(T * (1 - settle_window_frac))))
-        if len(idx) < 2:
-            return np.inf
-        pts = e.track[idx]
-        return float(np.linalg.norm(np.diff(pts, axis=0), axis=1).mean())
 
     # carried = mover whose end position is closest to some static entity
     best = None

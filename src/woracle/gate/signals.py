@@ -17,13 +17,12 @@ from woracle.contracts import GateSignalValue, GroundedRollout
 from woracle.registry import register
 
 
-def _frames(grounded: GroundedRollout) -> np.ndarray | None:
+def _frames(grounded: GroundedRollout) -> np.ndarray:
+    """Load rollout frames; failures are INFRA errors (broken inputs/config),
+    never 'evidence missing' — the ARCH §6 taxonomy (critic finding I-4)."""
     from woracle.io import load_frames
 
-    try:
-        return load_frames(grounded.rollout)
-    except Exception:
-        return None
+    return load_frames(grounded.rollout)
 
 
 def _gray(frames: np.ndarray) -> np.ndarray:
@@ -31,7 +30,7 @@ def _gray(frames: np.ndarray) -> np.ndarray:
 
 
 def _role_arrays(grounded: GroundedRollout):
-    from woracle.testing.plugins import role_data
+    from woracle.channels.verdict import role_data
 
     return role_data(grounded)
 
@@ -59,12 +58,12 @@ class BackgroundDriftSignal:
 
     def measure(self, grounded: GroundedRollout) -> GateSignalValue:
         frames = _frames(grounded)
-        if frames is None or len(frames) < 4:
+        if len(frames) < 4:
             return GateSignalValue(
                 name=self.name,
                 status="evidence_missing",
                 value=None,
-                reason="frames unavailable for background analysis",
+                reason=f"rollout too short ({len(frames)} frames) for background analysis",
             )
         T, H, W = frames.shape[:3]
         roles = _role_arrays(grounded)
@@ -163,13 +162,6 @@ class AppearanceConsistencySignal:
 
     def measure(self, grounded: GroundedRollout) -> GateSignalValue:
         frames = _frames(grounded)
-        if frames is None:
-            return GateSignalValue(
-                name=self.name,
-                status="evidence_missing",
-                value=None,
-                reason="frames unavailable",
-            )
         gray = _gray(frames)
         roles = _role_arrays(grounded)
         per_role: dict[str, float] = {}
@@ -325,8 +317,17 @@ class TrackContinuitySignal:
         self.scale_frac = float(scale_frac)  # of image diagonal, per frame
 
     def measure(self, grounded: GroundedRollout) -> GateSignalValue:
-        frames_shape = None
+        # One consistent diagonal for the whole rollout: prefer any mask shape,
+        # else the frames themselves (never a per-role magic constant).
         roles = _role_arrays(grounded)
+        frames_shape = None
+        for rd in roles.values():
+            if rd.mask is not None and rd.mask.ndim == 3:
+                frames_shape = rd.mask.shape[1:]
+                break
+        if frames_shape is None:
+            frames_shape = _frames(grounded).shape[1:3]
+        diag = float(np.hypot(*frames_shape))
         per_role: dict[str, float] = {}
         details: dict[str, float] = {}
         for b in grounded.bindings:
@@ -334,8 +335,6 @@ class TrackContinuitySignal:
             if not b.bound or rd is None or rd.track is None:
                 continue
             tr = rd.track
-            if frames_shape is None and rd.mask is not None and rd.mask.ndim == 3:
-                frames_shape = rd.mask.shape[1:]
             obs = np.isfinite(tr[:, 0])
             if obs.sum() < 4:
                 continue
@@ -343,7 +342,6 @@ class TrackContinuitySignal:
             steps = np.linalg.norm(np.diff(pts, axis=0), axis=1)
             if len(steps) == 0:
                 continue
-            diag = float(np.hypot(*frames_shape)) if frames_shape else 200.0
             p99 = float(np.percentile(steps, 99))
             per_role[b.role] = float(np.exp(-p99 / (self.scale_frac * diag)))
             details[f"p99_step:{b.role}"] = round(p99, 3)

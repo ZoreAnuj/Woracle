@@ -38,7 +38,14 @@ def decode_video(path: str, *, max_side: int | None = None) -> tuple[np.ndarray,
     """Decode an mp4 to (T, H, W, 3) uint8 + fps, with a content-addressed cache."""
     if not os.path.isfile(path):
         raise StoreError(f"video not found: {path}")
-    key = digest_json({"file": digest_file(path), "max_side": max_side, "codec": "v1"})
+    key = digest_json(
+        {
+            "file": digest_file(path),
+            "max_side": max_side,
+            "decoder": "pyav" if _has_pyav() else "imageio",
+            "codec": "v1",
+        }
+    )
     cpath = os.path.join(_cache_dir(), f"{key}.npz")
     if os.path.isfile(cpath):
         with np.load(cpath) as z:

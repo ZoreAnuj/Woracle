@@ -36,7 +36,7 @@ class OrderedPhaseCoverageChannel:
                 status="evidence_missing",
                 reason="spec declares no phases",
             )
-        from woracle.testing.plugins import role_data
+        from woracle.channels.verdict import role_data
 
         roles = role_data(grounded)
         lengths = [len(r.track) for r in roles.values() if r.track is not None]
@@ -79,17 +79,16 @@ class OrderedPhaseCoverageChannel:
             )
 
         credited = sum(1 for t in first_sat if t is not None)
-        order_violations: list[str] = []  # impossible by construction; kept for schema
         value = credited / len(phases)
         details = {
             f"t_first:{p.name}": float(t) if t is not None else -1.0
             for p, t in zip(phases, first_sat, strict=True)
         }
-        reason = f"order violated by: {', '.join(order_violations)}" if order_violations else ""
+        unmet = [p.name for p, t in zip(phases, first_sat, strict=True) if t is None]
         return ChannelScore(
             channel=self.name,
             value=float(value),
             confidence=float(np.mean([t is not None for t in first_sat])),
-            reason=reason,
+            reason=f"phases never satisfied in order: {', '.join(unmet)}" if unmet else "",
             details=details,
         )

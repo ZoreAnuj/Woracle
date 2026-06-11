@@ -113,3 +113,88 @@ def render_markdown(board: Leaderboard) -> str:
         )
     lines += ["", *[f"> {n}" for n in board.notes], ""]
     return "\n".join(lines)
+
+
+def stats_blocks_for(cards, golds: dict[str, bool] | None = None) -> dict[str, str]:
+    """Assemble the P5 honesty statistics from snapshots (+ optional golds).
+
+    golds: rollout_id -> true success. PPI runs per policy when it has >= 2
+    gold labels AND >= 2 unlabeled judge scores; otherwise that policy reports
+    why it was skipped (never silently).
+    """
+    import numpy as np
+
+    from woracle.stats import abstention_sensitivity, ppi_mean, rank_intervals
+
+    blocks: dict[str, str] = {}
+    verdicts = {c.rollout_id: c for c in cards}
+    by_policy: dict[str, list] = {}
+    for c in cards:
+        by_policy.setdefault(c.policy or "<unknown>", []).append(c)
+
+    # MNAR abstention sensitivity (always available)
+    sens = abstention_sensitivity(
+        {p: [c.success.verdict for c in cs] for p, cs in by_policy.items()}
+    )
+    lines = [
+        f"{b.policy:<16} pass-rate in [{b.rate_low:.2f}, {b.rate_high:.2f}] "
+        f"(abstain {b.n_abstain}/{b.n})"
+        for b in sens.bounds
+    ]
+    lines.append(
+        "ranking robust to abstention imputation: "
+        + (
+            "YES"
+            if sens.ranking_is_robust
+            else f"NO — undetermined pairs: {sens.undetermined_pairs}"
+        )
+    )
+    blocks["Abstention sensitivity (MNAR bounds)"] = "\n".join(lines)
+
+    # Bootstrap rank intervals on the continuous verdict-channel score
+    scores: dict[str, list[float]] = {}
+    for p, cs in by_policy.items():
+        vals = []
+        for c in cs:
+            ch = c.channel("success.predicates")
+            if ch is not None and ch.status == "ok" and ch.value is not None:
+                vals.append(float(ch.value))
+        if vals:
+            scores[p] = vals
+    if len(scores) >= 2:
+        ri = rank_intervals(scores)
+        blocks["Bootstrap rank intervals (graded rollouts only)"] = "\n".join(
+            f"{p:<16} mean={d['mean']:.3f}  rank in [{d['rank_low']:.0f}, {d['rank_high']:.0f}]"
+            for p, d in sorted(ri.items(), key=lambda kv: kv[1]["mean"], reverse=True)
+        )
+
+    # PPI per policy when golds provided
+    if golds:
+        plines = []
+        for p, cs in sorted(by_policy.items()):
+            lab_f, lab_y, unlab_f = [], [], []
+            for c in cs:
+                ch = c.channel("success.predicates")
+                if ch is None or ch.status != "ok" or ch.value is None:
+                    continue
+                if c.rollout_id in golds:
+                    lab_f.append(float(ch.value))
+                    lab_y.append(1.0 if golds[c.rollout_id] else 0.0)
+                else:
+                    unlab_f.append(float(ch.value))
+            if len(lab_f) >= 2 and len(unlab_f) >= 2:
+                est = ppi_mean(np.array(unlab_f), np.array(lab_f), np.array(lab_y))
+                plines.append(
+                    f"{p:<16} success = {est.estimate:.3f} "
+                    f"[{est.ci_low:.3f}, {est.ci_high:.3f}] "
+                    f"(lam={est.lam:.2f}, n_gold={est.n_labeled}, "
+                    f"{'narrower' if est.narrower_than_classical else 'NOT narrower'} than gold-only)"
+                )
+            else:
+                plines.append(
+                    f"{p:<16} skipped: needs >=2 gold and >=2 unlabeled judged "
+                    f"(have {len(lab_f)}/{len(unlab_f)})"
+                )
+        blocks["PPI-rectified success estimates"] = "\n".join(plines)
+    _ = verdicts
+    return blocks

@@ -16,10 +16,11 @@ within-video real-vs-generated comparison with no external labels.
 ## Findings
 
 **F1 — Bind rate and detector confidence are vanity metrics on WM rollouts.**
-Run A: 100% bind rate, quality 1.0, on every role, every policy — including
-the random policy's heavily drifted videos. Mean visibility (det confidence)
-sat at 0.53–0.64 across the entire 2-minute horizon with real→generated drop
-≈ 0 (range −0.025…+0.054). The detector "succeeds" identically on real frames,
+Run A: 100% bind rate on every role, every policy — including the random
+policy's heavily drifted videos (quality 1.0 for tip/holder; 0.973–0.997 for
+gripper). Mean per-window visibility (det confidence) stayed flat across the
+2-minute horizon — carried_object 0.53–0.64, receptacle 0.32–0.44, gripper
+0.24–0.36 — with real→generated drop ≈ 0 (aggregate range −0.025…+0.054). The detector "succeeds" identically on real frames,
 coherent generated frames, and badly drifted frames. Confidence measures
 nothing about task-relevant content here (consistent with the measured
 absent-object inversion: 0.606 absent vs 0.511 present on our probe).
@@ -40,13 +41,17 @@ object binding needs a stronger detector, ROI re-detection around the
 effector, or point-tracker seeding (P-next work) — tiling alone is not the
 published cure here.
 
-**F4 — The large static anchor binds correctly and its track measures drift.**
-The green holder binds correctly in both runs (overlay-verified), surviving
-deep into generated frames. Its track jitter p90 separates drift severity:
-act ≈ 0.05–0.07 px; smolvla up to 0.51; random up to **2.36 px** — and run B's
-static-role wander flag fired on exactly the drifted cases. "Track the large
-anchor; its instability is your drift meter" (the research-round
-recommendation) is confirmed on real WM rollouts.
+**F4 — The large static anchor binds correctly; its jitter carries drift
+signal, with caveats.** The green holder binds correctly (overlay-inspected;
+overlays reproducible via `run_study.py`, not tracked in git). Holder jitter
+p90 per rollout (run A): act_010000 = 0.06/0.05, act_050000 = 0.07/**0.85**,
+smolvla = 0.07/0.51, random = 0.14/**2.36** px. The extreme is the random
+policy, but act_050000_init_001's 0.85 px outlier breaks any clean per-rollout
+policy ordering — anchor jitter is a DRIFT observable, not a policy ranker.
+Run B's static-role wander flag fired on 2/8 rollouts (act_050000_init_001,
+random_init_000) and notably NOT on random_init_001 (the 2.36 px case — its
+wander stayed under the 25%-of-diagonal flag threshold): flag coverage is
+partial and thresholds need calibration (P2's job).
 
 ## Implications for woracle (already implemented)
 

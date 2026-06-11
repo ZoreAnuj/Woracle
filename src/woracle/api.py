@@ -70,9 +70,20 @@ def grade(
 def report(
     cards_dir_or_cards: str | list[GradeCard],
     out_path: str | None = None,
+    *,
+    golds: dict[str, bool] | str | None = None,
+    html_path: str | None = None,
 ) -> Leaderboard:
-    """Assemble a leaderboard from grade-card snapshots (no recomputation)."""
-    from woracle.reporting import build_leaderboard, load_cards, render_markdown
+    """Assemble leaderboard + honesty statistics from snapshots (no recompute).
+
+    golds: {rollout_id: succeeded} or a path to such a JSON — enables
+    PPI-rectified success estimates. html_path writes the self-contained
+    HTML report (markdown still via out_path).
+    """
+    import json as _json
+
+    from woracle.reporting import build_leaderboard, load_cards, render_html, render_markdown
+    from woracle.reporting.render import stats_blocks_for
 
     cards = (
         load_cards(cards_dir_or_cards)
@@ -80,10 +91,21 @@ def report(
         else cards_dir_or_cards
     )
     board = build_leaderboard(cards)
+    if isinstance(golds, str):
+        with open(golds, encoding="utf-8") as f:
+            golds = {k: bool(v) for k, v in _json.load(f).items()}
+    blocks = stats_blocks_for(cards, golds)
     if out_path:
-        md = render_markdown(board)
+        md = (
+            render_markdown(board)
+            + "\n"
+            + "\n".join(f"## {t}\n```\n{b}\n```\n" for t, b in blocks.items())
+        )
         with open(out_path, "w", encoding="utf-8") as f:
             f.write(md)
+    if html_path:
+        with open(html_path, "w", encoding="utf-8") as f:
+            f.write(render_html(board, cards, stats_blocks=blocks))
     return board
 
 
@@ -120,9 +142,30 @@ def compile(
     return spec
 
 
-def ground(*_args: object, **_kwargs: object):
-    """Standalone Stage-2 grounding — public form lands in P1."""
-    raise WoracleError(
-        "standalone woracle.ground arrives with the real-video grounders in P1. "
-        "P0 grades blobworld end-to-end via woracle.grade(...)."
-    )
+def ground(
+    rollouts_dir: str,
+    spec: str | TaskSpec,
+    out_dir: str = "woracle_grounded",
+    *,
+    grounder: str = "relational.motion",
+    grounder_params: dict | None = None,
+):
+    """Standalone Stage-2: bind spec roles in every rollout; returns the
+    GroundedRollout bundles (artifacts written under out_dir/<rollout_id>)."""
+    import os
+
+    from woracle.io import list_rollouts
+    from woracle.registry import get as reg_get
+
+    _ensure_plugins_loaded()
+    spec_obj = load_spec(spec) if isinstance(spec, str) else spec
+    rollouts = list_rollouts(rollouts_dir)
+    if not rollouts:
+        raise WoracleError(f"no episodes found under {rollouts_dir!r}")
+    g = reg_get("grounder", grounder)(**(grounder_params or {}))
+    bundles = []
+    for r in rollouts:
+        gdir = os.path.join(out_dir, r.id.replace(os.sep, "_"))
+        os.makedirs(gdir, exist_ok=True)
+        bundles.append(g.ground(r, spec_obj, gdir))
+    return bundles

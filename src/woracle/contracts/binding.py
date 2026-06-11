@@ -23,7 +23,10 @@ class RoleBinding(WoracleModel):
     # Copied from the spec role at grounding time so pure downstream stages
     # (gate, signals) can be required-aware without re-reading the spec.
     required: bool = True
-    quality: float = 0.0  # [0,1] binder's own confidence
+    # [0,1] — detection/persistence RATE only. The binding study measured
+    # detector confidence as content-blind on generated video (absent-object
+    # inversion): NEVER read quality as phrase fidelity or correctness.
+    quality: float = 0.0
     reason: str = ""  # why not bound / quality notes
     # Sidecar payloads, relative to the bundle dir:
     #   tracks: (T, 2) float32 centroid track (x, y), NaN where unobserved

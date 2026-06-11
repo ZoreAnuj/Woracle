@@ -16,8 +16,9 @@ from woracle.registry import register
 
 
 def dtw_distance(a: np.ndarray, b: np.ndarray) -> float:
-    """Classic DTW between (n,2) and (m,2) sequences; mean per-step cost along
-    the optimal path (length-normalized, symmetric in a/b)."""
+    """Classic DTW between (n,2) and (m,2) sequences; total optimal-path cost
+    normalized by the path-length BOUND (n+m) — comparable across lengths,
+    NOT the literal mean-per-step along the realized path."""
     a = np.asarray(a, np.float64)
     b = np.asarray(b, np.float64)
     if a.ndim != 2 or b.ndim != 2 or a.shape[1] != b.shape[1]:
@@ -78,7 +79,7 @@ class TrajectoryDTWChannel:
                 status="evidence_missing",
                 reason="no demo reference tracks configured (reference-based channel)",
             )
-        from woracle.testing.plugins import role_data
+        from woracle.channels.verdict import role_data
 
         rd = role_data(grounded).get(self.role)
         if rd is None or rd.track is None:

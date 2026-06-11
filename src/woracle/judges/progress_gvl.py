@@ -111,8 +111,12 @@ class GVLProgressChannel:
         voc = value_order_correlation(list(mean_vals[ok]), [int(i) for i in np.flatnonzero(ok)])
         if self.n_shuffles > 1 and got.all(axis=0).sum() >= 3:
             both = got.all(axis=0)
-            diffs = np.abs(stack[0, both] - stack[1, both])
-            agreement = float(np.clip(1.0 - 2.0 * diffs.mean(), 0.0, 1.0))
+            pair_diffs = [
+                np.abs(stack[a, both] - stack[b, both]).mean()
+                for a in range(self.n_shuffles)
+                for b in range(a + 1, self.n_shuffles)
+            ]
+            agreement = float(np.clip(1.0 - 2.0 * float(np.mean(pair_diffs)), 0.0, 1.0))
         else:
             agreement = 0.5  # single shuffle: agreement unknown, not assumed
         confidence = float(np.clip((max(voc, 0.0) + agreement) / 2.0, 0.0, 1.0))

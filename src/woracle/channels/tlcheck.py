@@ -81,7 +81,7 @@ class TLSatisfactionChannel:
                 status="evidence_missing",
                 reason="spec declares no success predicates",
             )
-        from woracle.testing.plugins import role_data
+        from woracle.channels.verdict import role_data
 
         roles = role_data(grounded)
         lengths = [len(r.track) for r in roles.values() if r.track is not None]

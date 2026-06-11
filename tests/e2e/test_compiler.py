@@ -95,3 +95,19 @@ def test_compiler_needs_two_demos() -> None:
     frames, _ = make_episode("success", seed=0)
     with pytest.raises(SpecError, match="at least 2 demos"):
         compile_spec([frames], "task")
+
+
+def test_cross_scene_b_more_failure_modes(compiled: TaskSpec, tmp_path) -> None:
+    drop, _ = make_episode("fail_drop", seed=9, scene=SCENE_B)
+    rnd, _ = make_episode("random", seed=9, scene=SCENE_B)
+    assert _verdict(compiled, drop, tmp_path, "b_drop") == "fail"
+    assert _verdict(compiled, rnd, tmp_path, "b_rnd") in ("fail", "abstain")
+
+
+def test_relational_grounder_ignores_appearance_candidates(compiled: TaskSpec, tmp_path) -> None:
+    """Regression guard: poisoned candidates must change NOTHING relationally."""
+    poisoned = compiled.model_copy(deep=True)
+    for role in poisoned.roles:
+        role.candidates = ["flying spaghetti monster"]
+    succ, _ = make_episode("success", seed=5, scene=SCENE_B)
+    assert _verdict(poisoned, succ, tmp_path, "b_poisoned") == "pass"

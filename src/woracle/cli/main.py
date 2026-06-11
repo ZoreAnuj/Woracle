@@ -98,14 +98,35 @@ def grade(
 def report(
     cards: str = typer.Option(..., help="directory containing grade-card JSONs"),
     out: str = typer.Option("", help="write markdown leaderboard here"),
+    golds: str = typer.Option("", help="JSON of {rollout_id: true_success} for PPI"),
+    html: str = typer.Option("", help="write self-contained HTML report here"),
 ) -> None:
-    """Build a leaderboard from grade cards."""
+    """Build leaderboard + honesty statistics from grade cards."""
     import woracle as w
 
-    board = w.report(cards, out_path=out or None)
+    board = w.report(cards, out_path=out or None, golds=golds or None, html_path=html or None)
     typer.echo(json.dumps(board.model_dump()["policies"], indent=2))
-    if out:
-        typer.echo(f"markdown -> {out}")
+    for path, label in ((out, "markdown"), (html, "html")):
+        if path:
+            typer.echo(f"{label} -> {path}")
+
+
+@app.command()
+def compile(
+    demos: str = typer.Option(..., help="directory of demo episode dirs"),
+    prompt: str = typer.Option(..., help="natural-language task prompt"),
+    out: str = typer.Option(..., help="output spec YAML path"),
+    name: str = typer.Option("compiled-task", help="spec name"),
+) -> None:
+    """Compile a TaskSpec from demos (self-tested; refuses if inseparable)."""
+    import woracle as w
+
+    spec = w.compile(demos, prompt, name=name, out=out)
+    st = spec.spec_provenance.self_test
+    typer.echo(
+        f"compiled '{spec.name}' -> {out}  (self-test: {st.demos_passed}/{st.demos_total} "
+        f"demos pass, {st.negatives_failed}/{st.negatives_total} negatives fail)"
+    )
 
 
 if __name__ == "__main__":

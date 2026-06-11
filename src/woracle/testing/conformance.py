@@ -242,5 +242,19 @@ def grounder_checks(grounder_cls: type) -> list[tuple[str, Callable[[], None]]]:
             "grounder must persist grounded.json into out_dir"
         )
 
-    checks += [("grounder_ground_contract", check_ground_contract)]
+    def check_params_property() -> None:
+        params = getattr(g, "params", None)
+        assert isinstance(params, dict), (
+            "grounder must expose a `params` dict property — it feeds the ground-"
+            "stage cache key; without it two differently-configured instances "
+            "silently share cache entries (cache-aliasing failure class)"
+        )
+        import json
+
+        json.dumps(params, sort_keys=True)  # must be canonical-JSON-able
+
+    checks += [
+        ("grounder_ground_contract", check_ground_contract),
+        ("grounder_params_property", check_params_property),
+    ]
     return checks
