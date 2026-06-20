@@ -6,14 +6,45 @@
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 
+Woracle compiles a task's success detector from a few demonstrations, then uses
+it to grade robot-policy rollouts — from any world model, or from real video —
+and abstains when it honestly cannot tell.
+
+---
+
+## About
+
 A simulator hands you `success()` for free. A world model — or a raw camera —
 hands you only pixels: no object poses, no contact flags, no success function. So
 today every robot-policy evaluation hand-rolls a per-task success detector, and
-those sit at 65–80% accuracy with no abstention and no statistics.
+those sit at 65–80% accuracy, with no abstention and no statistics behind them.
 
-Woracle **compiles the oracle from a few demonstrations instead.** Give it a task
-prompt and a handful of labeled episodes; it judges new rollouts — from any world
-model or real video — and abstains when it honestly cannot tell.
+Woracle takes a different path. You give it a task prompt and a handful of labeled
+episodes; it compiles a portable *oracle* that judges new rollouts, reports
+calibrated rankings with confidence intervals, and — the part that matters most —
+says **"I can't tell"** instead of guessing when it cannot perceive the evidence.
+It is world-model-agnostic, needs no per-task tuning, and is honest by
+construction.
+
+It's built for the people evaluating policies inside world models, where the
+privileged state a simulator would give you simply does not exist.
+
+## Highlights
+
+- **Demos in, oracle out.** Compile a reusable success detector from a prompt plus
+  a few labeled episodes — no per-task code to write.
+- **Works on any rollout.** World-model output or real footage; pixels are the only
+  input. Zero simulator state required.
+- **Honest by default.** Abstains when the evidence isn't perceivable, and reports
+  that abstention as information rather than a silent wrong answer.
+- **Detection-free judging.** Grades success even when the manipulated object is too
+  small to detect — validated on real data below.
+- **Statistics, not just labels.** PPI-rectified success rates, abstention-aware
+  bounds, and bootstrap rank intervals come standard.
+- **Light to import, heavy on demand.** `import woracle` pulls only numpy + pydantic
+  (CI-enforced); detectors, encoders, and VLMs load lazily behind extras.
+- **Built to extend.** Bring your own grounder, gate signal, channel, or judge
+  through a documented plugin API with a conformance suite.
 
 ---
 
@@ -84,7 +115,7 @@ woracle report --cards out/cards --out leaderboard.md
 model deleted the object — woracle abstains, and says why), and a random policy.
 No GPU, no checkpoints, no network.
 
-### Library — the four verbs
+### The four verbs
 
 ```python
 import woracle
@@ -102,7 +133,7 @@ board   = woracle.report(cards, "leaderboard.md",
 
 ---
 
-## The stages
+## The five stages
 
 | | |
 |---|---|
@@ -117,16 +148,24 @@ stacks (detectors, encoders, VLMs) live behind extras and load lazily at call ti
 
 ---
 
-## Design and evidence
+## Learn more
 
-- [`studies/wm_test/GROUNDING_FIX.md`](studies/wm_test/GROUNDING_FIX.md) — why
+- **[Why detection-free judging](studies/wm_test/GROUNDING_FIX.md)** — why
   detection-keyed grounding fails on small objects, the literature on object-free
-  success judging, and the fix validated above
-- [`studies/binding/REPORT.md`](studies/binding/REPORT.md) — measured grounding
-  behaviour on real world-model rollouts
-- [`docs/PLUGINS.md`](docs/PLUGINS.md) — write your own grounder, gate signal,
-  channel, or judge; run the conformance suite in your CI
+  success judging, and the fix validated in the results above.
+- **[Grounding on world-model rollouts](studies/binding/REPORT.md)** — measured
+  grounding behaviour on real generated rollouts, and how the gate catches false
+  object bindings.
+- **[Writing plugins](docs/PLUGINS.md)** — add your own grounder, gate signal,
+  channel, or judge, and run the conformance suite in your own CI.
+
+## Contributing
+
+Woracle is plugin-first by design — the cleanest way to extend it is a new
+grounder, gate signal, channel, or judge that passes the conformance suite (see
+the plugin guide above). Bug reports and pull requests are welcome; please keep the
+torch-free import rule intact, since CI enforces it.
 
 ## License
 
-Apache-2.0.
+Apache-2.0. See [LICENSE](LICENSE).
