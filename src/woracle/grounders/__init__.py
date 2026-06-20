@@ -7,6 +7,7 @@ extra. The blobworld reference grounder lives in woracle.testing.plugins.
 """
 
 from woracle.grounders.openvocab import OpenVocabGrounder
+from woracle.grounders.passthrough import PassthroughGrounder
 from woracle.grounders.relational import RelationalMotionGrounder
 
-__all__ = ["OpenVocabGrounder", "RelationalMotionGrounder"]
+__all__ = ["OpenVocabGrounder", "PassthroughGrounder", "RelationalMotionGrounder"]
