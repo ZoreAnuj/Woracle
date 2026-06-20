@@ -2,86 +2,129 @@
 
 **The world-model oracle. Demos in, oracle out.**
 
-World models are blind simulators: a policy rollout is just generated pixels — no object
-poses, no contact flags, no `success()`. Today every WM-based policy evaluation hand-rolls a
-per-task success detector (a VLM prompt, a color mask, a thousand hand labels), measured in
-the literature at 65–80% accuracy, with no abstention and no statistics.
+[![CI](https://github.com/ZoreAnuj/Woracle/actions/workflows/ci.yml/badge.svg)](https://github.com/ZoreAnuj/Woracle/actions/workflows/ci.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 
-Woracle is an **evaluation compiler**: it compiles a portable, scene-invariant task spec from
-a prompt and a few demonstrations, then grades policy rollouts from **any** world model
-against it — with calibrated honesty (it abstains when a rollout is ungradeable, e.g. when
-the WM deleted the object) and statistics that treat abstention as information.
+A simulator hands you `success()` for free. A world model — or a raw camera —
+hands you only pixels: no object poses, no contact flags, no success function. So
+today every robot-policy evaluation hand-rolls a per-task success detector, and
+those sit at 65–80% accuracy with no abstention and no statistics.
 
-> **Status: 0.1 pre-release.** All six stages are implemented and tested: real
-> open-vocab grounding (GroundingDINO+SAM) with motion-signature verification,
-> a calibratable validity gate (AUROC ≥ 0.8 on the generative-corruption
-> benchmark, enforced in CI), progress/phase/trajectory/TL-DTMC channels, a
-> GVL VLM judge protocol, the demos→spec COMPILER with self-test/REFUSE
-> (cross-scene transfer demonstrated), and PPI/MNAR honesty statistics.
-> Validated on real Cosmos-3 WM rollouts (see `studies/binding/REPORT.md`).
-> Not yet on PyPI (pending); APIs may still move before 0.1.
+Woracle **compiles the oracle from a few demonstrations instead.** Give it a task
+prompt and a handful of labeled episodes; it judges new rollouts — from any world
+model or real video — and abstains when it honestly cannot tell.
 
-## The shape
+---
+
+## How it works
 
 ```
-prompt + K demos ──▶ S1 COMPILE ──▶ task spec (YAML: roles, phases, predicates)
-                                          │
-rollouts from ANY world model ──▶ S2 GROUND ──▶ S3 GATE ──▶ S4 GRADE ──▶ S5 STATS
-                                  bind roles    abstain if   channels +   honest
-                                  to pixels     ungradeable  predicates   rankings
+  "insert the pipette tip into the holder"        rollouts to judge
+   + a few demos (success & failure)              (any world model, or real video)
+              │                                            │
+              ▼                                            ▼
+        ┌──────────┐                       ┌────────┐  ┌──────┐  ┌───────┐  ┌───────┐
+        │ COMPILE  │ ── task spec ───────▶ │ GROUND │─▶│ GATE │─▶│ GRADE │─▶│ STATS │
+        └──────────┘   roles · success     └────────┘  └──────┘  └───────┘  └───────┘
+                       criteria · demos     read the    abstain   pass /     honest
+                                            scene        if it     fail +     rankings
+                                            (objects,    cannot    margin     + CIs,
+                                             or whole-   judge                abstention
+                                             frame)                           accounting
+                                                            └──▶ grade card · leaderboard
 ```
 
-- **Specs store the task, never the scene** — roles are relational ("the thing that co-moves
-  with the gripper"), so one spec grades pipette-into-holder *and* USB-into-port.
-- **Evidence failure is data, not an exception** — "the object vanished" becomes an abstain
-  with a reason, logged per policy (informative missingness), never a crash or a silent drop.
-- **Models run once; everything downstream is pure** — gate/channels/stats replay on CPU from
-  cached artifacts.
+The honest defaults are the point: woracle **abstains when it cannot perceive the
+evidence** rather than guessing, reports abstention as information, and never lets
+a ranking-only signal touch a success verdict.
 
-## Try it (blobworld, no GPU, no checkpoints)
+---
+
+## Results
+
+Judging **real RH20T pipette-insertion episodes** — 6 human-rated successes and 6
+human-rated failures — with **no privileged information** and **no per-task tuning**:
+
+![margin separation](docs/assets/results.png)
+
+| oracle | how it perceives | graded | correct | AUROC |
+|---|---|---:|---:|---:|
+| object-grounded (GroundingDINO + SAM) | detect the tip by name | **0 / 12** | — | — |
+| **object-free** (DINOv2 demo-matching) | embed the whole frame | **12 / 12** | **11 / 12** | **0.97** |
+
+The ~10 px pipette tip is below the detector's resolution floor, so the
+object-grounded path **abstains on everything**. The object-free oracle —
+similarity to success vs. failure demos — separates the two classes cleanly
+(leave-one-out). The single miss is a subtle *task* failure (rating 1) whose final
+frame looks like a success; a temporal or reward-model channel closes that gap.
+
+### Sample judgments (ground truth vs. woracle)
+
+| | |
+|---|---|
+| ![success](docs/assets/sample_success.png) | ![failure](docs/assets/sample_fail.png) |
+
+Real frames, real human ratings, real predictions — produced without ever
+detecting the manipulated object.
+
+---
+
+## Quickstart
 
 ```bash
-uv sync --group test          # or: pip install -e . --group test
-woracle demo --out blob_demo
+uv sync --group test           # or: pip install -e . --group test
+woracle demo --out blob_demo   # a synthetic world with known ground truth
 woracle grade --rollouts blob_demo --spec blob_demo/spec.yaml --out out
 woracle report --cards out/cards --out leaderboard.md
-woracle doctor
 ```
 
-`blob_demo` contains a success episode, two failure modes, a *vanish* episode (the WM
-"deleted" the object — woracle must abstain, and does), and a random policy.
+`blob_demo` contains a success, two failure modes, a *vanish* episode (the world
+model deleted the object — woracle abstains, and says why), and a random policy.
+No GPU, no checkpoints, no network.
 
-## Library API (the four verbs)
+### Library — the four verbs
 
 ```python
 import woracle
 
-# the four verbs — all real
-spec  = woracle.compile("demos/", "insert the tip into the holder",
-                        out="specs/mytask/spec.yaml")       # self-tested, or REFUSEs
-bundles = woracle.ground("rollouts/", spec)                  # bind roles to pixels
-cards = woracle.grade("rollouts/", spec, out_dir="out")      # gate -> channels -> verdicts
-board = woracle.report("out/cards", "leaderboard.md",
-                       golds="golds.json",                   # optional: PPI rectification
-                       html_path="report.html")              # abstain-aware, MNAR-bounded
+# compile an oracle from demos (self-tested, or it REFUSES rather than emit a bad one)
+spec  = woracle.compile("demos/", "insert the pipette tip into the holder",
+                        out="specs/insert.yaml")
+
+bundles = woracle.ground("rollouts/", spec)        # bind the scene (objects, or whole-frame)
+cards   = woracle.grade("rollouts/", spec, out_dir="out")
+board   = woracle.report(cards, "leaderboard.md",
+                         golds="labels.json",       # optional: PPI-rectified success rates
+                         html_path="report.html")   # abstain-aware, MNAR-bounded
 ```
 
-Real-video grounding (`pip install 'woracle[ground]'`):
-GroundingDINO-tiny + SAM via transformers (Apache models), detection-linked
-tracking with motion-signature verification — binding-study-honest: detector
-confidence is documented as content-blind on generated video; geometry checks
-catch what confidence cannot (8/8 false latches in the study).
+---
 
-## Design & evidence
+## The stages
 
-- `studies/binding/REPORT.md` — field-first measurements of open-vocab binding
-  on real WM rollouts (confidence inversion, false-latch detection, anchor drift)
-- `docs/PLUGINS.md` — plugin-author guide + conformance suite
-- Design docs (research map ~140 works, architecture decisions with receipts)
-  live in the companion workspace; ask for `WM_EVAL_TOOLKIT_PROPOSAL.md` /
-  `WM_EVAL_TOOLKIT_ARCH.md`
-- Kernel rule: `import woracle` pulls numpy+pydantic only (CI-enforced); heavy stacks live
-  behind extras `[ground] [track] [judge] [3d]` and load lazily at call time.
+| | |
+|---|---|
+| **S1 Compile** | prompt + demos → a portable task spec (relational roles, success criteria); self-tested against the demos or it refuses |
+| **S2 Ground** | bind the spec to a rollout — open-vocab detect + track when objects are perceivable, or whole-frame embedding when they are not |
+| **S3 Gate** | structural validity check (object permanence, drift, action↔video consistency) → grade, degrade, or **abstain** |
+| **S4 Grade** | scored channels (predicate success, demo-match, progress, trajectory) fused into a verdict; ranking-only signals are walled off |
+| **S5 Stats** | PPI-rectified success rates, MNAR abstention bounds, bootstrap rank intervals — honest numbers, with CIs |
+
+The kernel rule: `import woracle` pulls numpy + pydantic only (CI-enforced). Heavy
+stacks (detectors, encoders, VLMs) live behind extras and load lazily at call time.
+
+---
+
+## Design and evidence
+
+- [`studies/wm_test/GROUNDING_FIX.md`](studies/wm_test/GROUNDING_FIX.md) — why
+  detection-keyed grounding fails on small objects, the literature on object-free
+  success judging, and the fix validated above
+- [`studies/binding/REPORT.md`](studies/binding/REPORT.md) — measured grounding
+  behaviour on real world-model rollouts
+- [`docs/PLUGINS.md`](docs/PLUGINS.md) — write your own grounder, gate signal,
+  channel, or judge; run the conformance suite in your CI
 
 ## License
 

@@ -1,0 +1,74 @@
+{
+  "fail_06": {
+    "margin": 0.0453,
+    "gt": false,
+    "rating": 1,
+    "pred": "pass"
+  },
+  "fail_07": {
+    "margin": -0.0848,
+    "gt": false,
+    "rating": 1,
+    "pred": "fail"
+  },
+  "fail_08": {
+    "margin": -0.1039,
+    "gt": false,
+    "rating": 1,
+    "pred": "fail"
+  },
+  "fail_09": {
+    "margin": -0.0975,
+    "gt": false,
+    "rating": 0,
+    "pred": "fail"
+  },
+  "fail_10": {
+    "margin": -0.0673,
+    "gt": false,
+    "rating": 1,
+    "pred": "fail"
+  },
+  "fail_11": {
+    "margin": -0.0583,
+    "gt": false,
+    "rating": 0,
+    "pred": "fail"
+  },
+  "succ_00": {
+    "margin": 0.0716,
+    "gt": true,
+    "rating": 8,
+    "pred": "pass"
+  },
+  "succ_01": {
+    "margin": 0.0512,
+    "gt": true,
+    "rating": 8,
+    "pred": "pass"
+  },
+  "succ_02": {
+    "margin": 0.046,
+    "gt": true,
+    "rating": 9,
+    "pred": "pass"
+  },
+  "succ_03": {
+    "margin": 0.0546,
+    "gt": true,
+    "rating": 9,
+    "pred": "pass"
+  },
+  "succ_04": {
+    "margin": 0.036,
+    "gt": true,
+    "rating": 9,
+    "pred": "pass"
+  },
+  "succ_05": {
+    "margin": 0.0592,
+    "gt": true,
+    "rating": 8,
+    "pred": "pass"
+  }
+}
