@@ -62,6 +62,8 @@ def main():
     ap.add_argument("--n_fail", type=int, default=6)
     ap.add_argument("--max_frames", type=int, default=150)
     ap.add_argument("--fps", type=int, default=10)
+    ap.add_argument("--ratings", default="",
+                    help="external {scene: rating} json (ratings live in lowdim, not color)")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
     os.makedirs(args.workdir, exist_ok=True)
@@ -93,20 +95,22 @@ def main():
     scene_dirs = sorted(d for d in os.listdir(inner_root) if "task_0200" in d)
     print(f"  extracted scene dirs: {len(scene_dirs)} under {inner_root}")
 
-    # 2) read ratings, bucket success/fail
+    # 2) ratings: from external ratings.json (lowdim) or per-scene metadata.json (color)
+    ext = json.load(open(args.ratings)) if args.ratings and os.path.isfile(args.ratings) else {}
     rated = []
     for sd in scene_dirs:
-        sp = os.path.join(inner_root, sd)
-        mp = os.path.join(sp, "metadata.json")
-        if not os.path.isfile(mp):
+        if sd in ext:
+            rated.append((sd, int(ext[sd])))
             continue
-        try:
-            rating = int(json.load(open(mp)).get("rating", -1))
-        except Exception:
-            rating = -1
-        rated.append((sd, rating))
+        mp = os.path.join(inner_root, sd, "metadata.json")
+        if os.path.isfile(mp):
+            try:
+                rated.append((sd, int(json.load(open(mp)).get("rating", -1))))
+            except Exception:
+                pass
     if not rated:
-        print("!! no metadata.json found in color tar scenes — ratings live in lowdim tar.")
+        print("!! no ratings found — pass --ratings <lowdim ratings.json> "
+              "(metadata.json is NOT in the color tar).")
         print("   sample scene contents:", os.listdir(os.path.join(inner_root, scene_dirs[0]))[:8])
         return 2
     succ = [s for s, r in rated if r >= 2]

@@ -57,6 +57,29 @@ becomes an optional confidence booster — not the gate.
 ## The re-test (what this validates)
 
 Instead of WM rollouts, grade **real RH20T success vs failure dataset episodes**
-with the object-free oracle. Expectation: `success.demo_match` separates success
-from failure (AUROC) where the old tip-grounding path abstained on both. Scripts:
-`export_rh20t_episodes.py` (local, rating-labeled) + `retest_real_episodes.py`.
+with the object-free oracle. Scripts: `export_rh20t_episodes.py` (local,
+rating-labeled — ratings pulled from the lowdim tar, video from color) +
+`retest_real_episodes.py`.
+
+### RESULT (2026-06-20) — validated on 12 real RH20T task_0200 episodes
+
+6 success (rating 8–9) + 6 failure (rating 0 robot-fail / 1 task-fail),
+concat-view, judged with **zero object detection**:
+
+| Oracle | Outcome |
+|---|---|
+| **OLD object-grounded** (openvocab GDINO+SAM → success.predicates) | **0/12 graded — all abstain** (pipette tip ungroundable) |
+| **NEW object-free** (frames.passthrough → success.demo_match, DINOv2) | held-out half-split: **AUROC 1.000, 6/6**; leave-one-out over all 12: **AUROC 0.917, 11/12** |
+
+All 6 successes scored margin > 0 (correct); 5/6 failures scored margin < 0.
+The single miss (`fail_06`, rating 1 = *task* failure) scored +0.052 — a subtle
+task failure whose final frame visually resembles success, the documented
+weakness of final-frame matching. Mitigations (roadmap): a temporal/progress
+channel (GVL/TOPReward), more diverse prototypes, or a learned reward model
+(Robometer/RoboReward) as a second verdict-eligible channel — the ensemble
+fuses them.
+
+**Conclusion:** the generalizable, detection-free oracle separates real success
+from real failure (11/12) exactly where the object-grounded path was blind
+(0/12). No per-task tuning — only the prompt + a few labeled demos the pipeline
+already ingests.

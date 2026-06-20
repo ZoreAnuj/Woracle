@@ -19,6 +19,10 @@ import sys
 import numpy as np
 
 import woracle
+import woracle.channels  # noqa: F401  (registers success.demo_match etc.)
+import woracle.gate.signals  # noqa: F401  (registers gate signals)
+import woracle.grounders  # noqa: F401  (registers frames.passthrough, openvocab)
+import woracle.testing.plugins  # noqa: F401  (registers binding_health/permanence signals)
 from woracle.channels.demo_match import build_demo_protos
 from woracle.contracts import GatePolicy
 from woracle.io import rollout_from_video
