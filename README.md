@@ -61,11 +61,12 @@ frame looks like a success; a temporal or reward-model channel closes that gap.
 
 ### Sample judgments (ground truth vs. woracle)
 
-| | |
+| success episode | failure episode |
 |---|---|
-| ![success](docs/assets/sample_success.png) | ![failure](docs/assets/sample_fail.png) |
+| ![success](docs/assets/sample_success.gif) | ![failure](docs/assets/sample_fail.gif) |
+| **GT:** success (rating 9) &nbsp;—&nbsp; **woracle:** PASS (margin +0.046) | **GT:** failure (rating 0) &nbsp;—&nbsp; **woracle:** FAIL (margin −0.097) |
 
-Real frames, real human ratings, real predictions — produced without ever
+Real footage, real human ratings, real predictions — produced without ever
 detecting the manipulated object.
 
 ---
