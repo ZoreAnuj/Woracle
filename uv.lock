@@ -1595,6 +1595,13 @@ all = [
     { name = "torch" },
     { name = "transformers" },
 ]
+embed = [
+    { name = "imageio" },
+    { name = "imageio-ffmpeg" },
+    { name = "pillow" },
+    { name = "torch" },
+    { name = "transformers" },
+]
 ground = [
     { name = "imageio" },
     { name = "imageio-ffmpeg" },
@@ -1632,10 +1639,11 @@ requires-dist = [
     { name = "torch", marker = "extra == 'ground'", specifier = ">=2.2" },
     { name = "transformers", marker = "extra == 'ground'", specifier = ">=4.45" },
     { name = "typer", specifier = ">=0.12" },
-    { name = "woracle", extras = ["ground", "track", "judge", "3d"], marker = "extra == 'all'" },
+    { name = "woracle", extras = ["ground"], marker = "extra == 'embed'" },
+    { name = "woracle", extras = ["ground", "track", "judge", "3d", "embed"], marker = "extra == 'all'" },
     { name = "woracle", extras = ["video"], marker = "extra == 'ground'" },
 ]
-provides-extras = ["video", "ground", "track", "judge", "3d", "all"]
+provides-extras = ["video", "ground", "track", "judge", "3d", "embed", "all"]
 
 [package.metadata.requires-dev]
 dev = [

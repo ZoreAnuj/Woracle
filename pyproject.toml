@@ -43,7 +43,8 @@ ground = [    # open-vocab detect + segment via transformers ports (Apache model
 track = []    # P1+: dedicated point trackers (tapnet line) — SAM-link tracking ships in [ground]
 judge = []    # P3: VLM judge backends
 "3d" = []     # P1-opt: TAPIP3D / metric depth
-all = ["woracle[ground,track,judge,3d]"]
+embed = ["woracle[ground]"]   # DINOv2 demo-match encoder (transformers, Apache)
+all = ["woracle[ground,track,judge,3d,embed]"]
 
 [project.scripts]
 woracle = "woracle.cli.main:app"

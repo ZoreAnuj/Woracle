@@ -177,25 +177,42 @@ def _success_from_channels(channels: list, scores: list, pass_threshold: float) 
     satisfied: list[str] = []
     violated: list[str] = []
     reasons: list[str] = []
-    any_missing = False
-    all_pass = True
+    votes: list[tuple[str, bool]] = []  # (channel, passed) for channels that COULD judge
+    missing: list[str] = []
     for _ch, sc in eligible:
         usable = sc.status == "ok" and sc.value is not None and math.isfinite(sc.value)
         if not usable:
-            any_missing = True
-            reasons.append(f"{sc.channel}: {sc.status} ({sc.reason or 'no usable value'})")
+            missing.append(f"{sc.channel}: {sc.status} ({sc.reason or 'no usable value'})")
             continue
         for k, v in sc.details.items():
             if k.startswith("pred:"):
                 (satisfied if v >= 0.5 else violated).append(k[len("pred:") :])
-        if sc.value < pass_threshold:  # type: ignore[operator]
-            all_pass = False
-    if any_missing:
+        votes.append((sc.channel, sc.value >= pass_threshold))  # type: ignore[operator]
+    # Drop-missing ENSEMBLE (the generalizable fix): a verdict-eligible channel
+    # that cannot judge (e.g. object-grounded predicates when the object is
+    # un-detectable) is DROPPED, not a global veto — so a detection-free channel
+    # (success.demo_match) can still decide. Abstain ONLY if no channel could
+    # judge, or if the channels that could judge DISAGREE (conflict — never guess).
+    if not votes:
         return SuccessReport(
-            verdict="abstain", satisfied=satisfied, violated=violated, reasons=reasons
+            verdict="abstain",
+            satisfied=satisfied,
+            violated=violated,
+            reasons=missing or ["no verdict-eligible channel produced a usable value"],
+        )
+    passed = [name for name, p in votes if p]
+    failed = [name for name, p in votes if not p]
+    if missing:
+        reasons.append("dropped (no evidence): " + "; ".join(missing))
+    if passed and failed:
+        return SuccessReport(
+            verdict="abstain",
+            satisfied=satisfied,
+            violated=violated,
+            reasons=[*reasons, f"verdict channels conflict — pass={passed} fail={failed}"],
         )
     return SuccessReport(
-        verdict="pass" if all_pass else "fail",
+        verdict="pass" if passed else "fail",
         satisfied=satisfied,
         violated=violated,
         reasons=reasons,
